@@ -73,27 +73,38 @@
 
 <hr>
 
-<h2>生成結果</h2>
+<h2>勤務表（カレンダー）</h2>
 
-<% if @assignments.empty? %>
+<% if @matrix.values.all?(&:empty?) %>
   <p>まだ生成されていません。</p>
 <% else %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>日付</th>
-        <th>スタッフ</th>
-        <th>勤務</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @assignments.each do |a| %>
+  <div style="overflow-x: auto;">
+    <table border="1" cellpadding="6" style="border-collapse: collapse; white-space: nowrap;">
+      <thead>
         <tr>
-          <td><%= a.date %></td>
-          <td><%= a.staff.name %></td>
-          <td><%= a.kind %></td>
+          <th>名前</th>
+          <% @dates.each do |date| %>
+            <th>
+              <div><%= date.day %></div>
+              <div style="font-size: 12px;"><%= %w(日 月 火 水 木 金 土)[date.wday] %></div>
+            </th>
+          <% end %>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </thead>
+
+      <tbody>
+        <% @staffs.each do |staff| %>
+          <tr>
+            <th><%= staff.name %></th>
+            <% @dates.each do |date| %>
+              <% kind = @matrix[staff.id][date] %>
+              <td style="text-align: center;">
+                <%= kind.present? ? kind : "-" %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 <% end %>

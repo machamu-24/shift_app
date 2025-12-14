@@ -24,10 +24,19 @@ class ShiftMonthsController < ApplicationController
                   .where(shift_month_id: @shift_month.id, kind: "off")
                   .order(:date, :staff_id)
 
-    @assignments = ShiftAssignment
-                     .includes(:staff)
-                     .where(shift_month_id: @shift_month.id)
-                     .order(:date, :staff_id)
+    start_date = Date.new(@shift_month.year, @shift_month.month, 1)
+    end_date   = start_date.end_of_month
+    @dates     = (start_date..end_date).to_a
+
+    assignments = ShiftAssignment
+                    .where(shift_month_id: @shift_month.id)
+                    .order(:date, :staff_id)
+
+    # matrix[staff_id][date] = "D" or "O"
+    @matrix = Hash.new { |h, k| h[k] = {} }
+    assignments.each do |a|
+      @matrix[a.staff_id][a.date] = a.kind
+    end
   end
 
   def generate
