@@ -1,0 +1,2 @@
+class ShiftMonth < ApplicationRecord
+end
