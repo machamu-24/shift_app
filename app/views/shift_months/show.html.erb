@@ -1,2 +1,51 @@
-<h1>ShiftMonths#show</h1>
-<p>Find me in app/views/shift_months/show.html.erb</p>
+<h1><%= @shift_month.year %>年 <%= @shift_month.month %>月</h1>
+<p>毎日必要な日勤人数：<%= @shift_month.required_day_shifts %></p>
+<p>ステータス：<%= @shift_month.status %></p>
+
+<% if @error_message.present? %>
+  <hr>
+  <h2><%= @error_message %></h2>
+  <% if @shortages.any? %>
+    <ul>
+      <% @shortages.first(5).each do |s| %>
+        <li>
+          <%= s["date"] %>：必要 <%= s["required"] %> 名 / 可能 <%= s["available"] %> 名（不足 <%= s["shortage"] %> 名）
+        </li>
+      <% end %>
+      <% if @shortages.size > 5 %>
+        <li>ほか <%= @shortages.size - 5 %> 日</li>
+      <% end %>
+    </ul>
+  <% end %>
+<% end %>
+
+<hr>
+
+<%= button_to "シフトを自動生成", generate_shift_month_path(@shift_month), method: :post %>
+
+<hr>
+
+<h2>生成結果</h2>
+
+<% if @assignments.empty? %>
+  <p>まだ生成されていません。</p>
+<% else %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>日付</th>
+        <th>スタッフ</th>
+        <th>勤務</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @assignments.each do |a| %>
+        <tr>
+          <td><%= a.date %></td>
+          <td><%= a.staff.name %></td>
+          <td><%= a.kind %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

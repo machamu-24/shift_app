@@ -1,2 +1,20 @@
-<h1>ShiftMonths#new</h1>
-<p>Find me in app/views/shift_months/new.html.erb</p>
+<h1>シフト条件（新規作成）</h1>
+
+<%= form_with model: @shift_month do |f| %>
+  <div>
+    <%= f.label :year, "年" %>
+    <%= f.number_field :year, value: Date.today.year %>
+  </div>
+
+  <div>
+    <%= f.label :month, "月" %>
+    <%= f.number_field :month, value: Date.today.month %>
+  </div>
+
+  <div>
+    <%= f.label :required_day_shifts, "毎日必要な日勤人数" %>
+    <%= f.number_field :required_day_shifts, value: 3, min: 1 %>
+  </div>
+
+  <%= f.submit "作成" %>
+<% end %>
