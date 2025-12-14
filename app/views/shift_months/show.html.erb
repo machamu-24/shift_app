@@ -21,6 +21,54 @@
 
 <hr>
 
+<h2>希望休（必須）を追加</h2>
+
+<%= form_with model: [@shift_month, @shift_request], local: true do |f| %>
+  <div>
+    <%= f.label :staff_id, "スタッフ" %>
+    <%= f.collection_select :staff_id, @staffs, :id, :name, prompt: "選択してください" %>
+  </div>
+
+  <div>
+    <%= f.label :date, "日付" %>
+    <%= f.date_field :date %>
+  </div>
+
+  <%= f.submit "希望休を追加" %>
+<% end %>
+
+<hr>
+<h2>登録済み希望休</h2>
+
+<% if @requests.empty? %>
+  <p>まだ登録がありません。</p>
+<% else %>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr>
+        <th>日付</th>
+        <th>スタッフ</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @requests.each do |r| %>
+        <tr>
+          <td><%= r.date %></td>
+          <td><%= r.staff.name %></td>
+          <td>
+            <%= button_to "削除", shift_month_shift_request_path(@shift_month, r),
+                  method: :delete,
+                  data: { turbo_confirm: "削除しますか？" } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<hr>
+
 <%= button_to "シフトを自動生成", generate_shift_month_path(@shift_month), method: :post %>
 
 <hr>
