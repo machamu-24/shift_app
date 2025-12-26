@@ -24,6 +24,11 @@ class ShiftMonthsController < ApplicationController
                   .where(shift_month_id: @shift_month.id, kind: "off")
                   .order(:date, :staff_id)
 
+    @requested_off_map = Hash.new { |h, k| h[k] = {} }
+    @requests.each do |r|
+      @requested_off_map[r.staff_id][r.date] = true
+    end
+
     start_date = Date.new(@shift_month.year, @shift_month.month, 1)
     end_date   = start_date.end_of_month
     @dates     = (start_date..end_date).to_a
@@ -32,10 +37,9 @@ class ShiftMonthsController < ApplicationController
                     .where(shift_month_id: @shift_month.id)
                     .order(:date, :staff_id)
 
-    # matrix[staff_id][date] = "D" or "O"
-    @matrix = Hash.new { |h, k| h[k] = {} }
+    @assignment_map = Hash.new { |h, k| h[k] = {} }
     assignments.each do |a|
-      @matrix[a.staff_id][a.date] = a.kind
+      @assignment_map[a.staff_id][a.date] = a
     end
   end
 
@@ -52,6 +56,32 @@ class ShiftMonthsController < ApplicationController
         h.merge(date: h[:date].to_s)
       end
       redirect_to shift_month
+    end
+  end
+
+  def toggle_assignment
+    @shift_month = ShiftMonth.find(params[:id])
+
+    staff_id = params.require(:staff_id).to_i
+    date     = Date.parse(params.require(:date))
+
+    @staff = Staff.find(staff_id)
+    @date  = date
+
+    @assignment = ShiftAssignment.find_or_create_by!(
+      shift_month_id: @shift_month.id,
+      staff_id: staff_id,
+      date: date
+    ) do |a|
+      a.kind = "D"
+    end
+
+    @assignment.kind = (@assignment.kind == "D" ? "O" : "D")
+    @assignment.save!
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to @shift_month, notice: "勤務を更新しました" }
     end
   end
 

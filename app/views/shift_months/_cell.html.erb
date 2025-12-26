@@ -1,0 +1,17 @@
+<%# locals: shift_month:, staff:, date:, assignment: %>
+<% kind = assignment&.kind %>
+<% label = (kind == "O" ? "休" : "") %>
+
+<%# 希望休のconfirmは show側で requested_off_map を渡している前提 %>
+<% requested_off = defined?(requested_off_map) && requested_off_map&.dig(staff.id, date) == true %>
+<% will_change_to_work = (kind == "O") %>
+<% confirm_message = (requested_off && will_change_to_work) ? "出勤日に変更しても良いですか？" : nil %>
+
+<%= turbo_frame_tag dom_id_for_cell(shift_month, staff, date) do %>
+  <%= button_to label,
+        toggle_assignment_shift_month_path(shift_month),
+        method: :post,
+        params: { staff_id: staff.id, date: date.to_s },
+        form: { style: "display:inline" },
+        data: (confirm_message ? { turbo_confirm: confirm_message } : {}) %>
+<% end %>

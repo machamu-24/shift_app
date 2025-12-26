@@ -1,0 +1,4 @@
+<%= turbo_stream.replace dom_id_for_cell(@shift_month, @staff, @date) do %>
+  <%= render partial: "shift_months/cell",
+            locals: { shift_month: @shift_month, staff: @staff, date: @date, assignment: @assignment, requested_off_map: nil } %>
+<% end %>

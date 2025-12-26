@@ -75,9 +75,12 @@
 
 <h2>勤務表（カレンダー）</h2>
 
-<% if @matrix.values.all?(&:empty?) %>
+<% has_assignments = @assignment_map.values.any? { |by_date| by_date.present? } %>
+
+<% if !has_assignments %>
   <p>まだ生成されていません。</p>
 <% else %>
+
   <div style="overflow-x: auto;">
     <table border="1" cellpadding="6" style="border-collapse: collapse; white-space: nowrap;">
       <thead>
@@ -97,9 +100,15 @@
           <tr>
             <th><%= staff.name %></th>
             <% @dates.each do |date| %>
-              <% kind = @matrix[staff.id][date] %>
               <td style="text-align: center;">
-                <%= kind.present? ? kind : "-" %>
+                <%= render partial: "shift_months/cell",
+                          locals: {
+                            shift_month: @shift_month,
+                            staff: staff,
+                            date: date,
+                            assignment: @assignment_map.dig(staff.id, date),
+                            requested_off_map: @requested_off_map
+                          } %>
               </td>
             <% end %>
           </tr>
