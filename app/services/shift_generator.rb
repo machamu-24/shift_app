@@ -1,6 +1,8 @@
 class ShiftGenerator
   DAY_SHIFT = "D"
   OFF       = "O"
+  MAX_CONSECUTIVE_WORK = 5
+
 
   def initialize(shift_month:)
     @shift_month = shift_month
@@ -37,9 +39,14 @@ class ShiftGenerator
       dates.each do |date|
         off_ids = requested_off[date] || Set.new
         available_ids = staff_ids - off_ids.to_a
+        eligible_ids = available_ids.reject do |sid|
+          consecutive_work_days_before(sid, date) >= MAX_CONSECUTIVE_WORK
+        end
+
+        pool = (eligible_ids.size >= required) ? eligible_ids : available_ids
 
         # 公平性：D回数が少ない順に必要人数を割り当て
-        day_workers = available_ids.sort_by { |sid| d_counts[sid] }.take(required)
+        day_workers = pool.sort_by { |sid| d_counts[sid] }.take(required)
 
         # D を割り当て
         day_workers.each do |sid|
@@ -50,6 +57,7 @@ class ShiftGenerator
             kind: DAY_SHIFT
           )
           d_counts[sid] += 1
+          
         end
 
         # 残りは O（希望休も含む）
@@ -94,4 +102,19 @@ class ShiftGenerator
       }
     end
   end
+
+  def consecutive_work_days_before(staff_id, date)
+    count = 0
+    d = date - 1
+  
+    while count < MAX_CONSECUTIVE_WORK
+      a = ShiftAssignment.find_by(shift_month_id: @shift_month.id, staff_id: staff_id, date: d)
+      break unless a&.kind == DAY_SHIFT
+      count += 1
+      d -= 1
+    end
+  
+    count
+  end
+  
 end

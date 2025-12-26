@@ -1,0 +1,21 @@
+<%# locals: shift_month:, staff:, dates:, assignment_map:, requested_off_map: %>
+
+<tr id="<%= dom_id_for_row(shift_month, staff) %>">
+  <th><%= staff.name %></th>
+
+  <% dates.each do |date| %>
+    <% assignment = assignment_map.dig(staff.id, date) %>
+
+    <td style="text-align: center;">
+      <%= render partial: "shift_months/cell",
+            locals: {
+              shift_month: shift_month,
+              staff: staff,
+              date: date,
+              assignment: assignment,
+              requested_off_map: requested_off_map,
+              assignment_map: assignment_map
+            } %>
+    </td>
+  <% end %>
+</tr>

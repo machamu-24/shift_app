@@ -85,33 +85,27 @@
     <table border="1" cellpadding="6" style="border-collapse: collapse; white-space: nowrap;">
       <thead>
         <tr>
-          <th>名前</th>
+        <th>名前</th>
           <% @dates.each do |date| %>
-            <th>
+            <th class="<%= date_header_class(date) %>" title="<%= holiday_name(date) %>">
               <div><%= date.day %></div>
               <div style="font-size: 12px;"><%= %w(日 月 火 水 木 金 土)[date.wday] %></div>
             </th>
           <% end %>
+        
         </tr>
       </thead>
 
       <tbody>
         <% @staffs.each do |staff| %>
-          <tr>
-            <th><%= staff.name %></th>
-            <% @dates.each do |date| %>
-              <td style="text-align: center;">
-                <%= render partial: "shift_months/cell",
-                          locals: {
-                            shift_month: @shift_month,
-                            staff: staff,
-                            date: date,
-                            assignment: @assignment_map.dig(staff.id, date),
-                            requested_off_map: @requested_off_map
-                          } %>
-              </td>
-            <% end %>
-          </tr>
+          <%= render partial: "shift_months/row",
+                locals: {
+                  shift_month: @shift_month,
+                  staff: staff,
+                  dates: @dates,
+                  assignment_map: @assignment_map,
+                  requested_off_map: @requested_off_map
+                } %>
         <% end %>
       </tbody>
     </table>

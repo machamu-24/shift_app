@@ -79,6 +79,9 @@ class ShiftMonthsController < ApplicationController
     @assignment.kind = (@assignment.kind == "D" ? "O" : "D")
     @assignment.save!
 
+    start_date = Date.new(@shift_month.year, @shift_month.month, 1)
+    @dates = (start_date..start_date.end_of_month).to_a
+
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to @shift_month, notice: "勤務を更新しました" }

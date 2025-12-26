@@ -1,4 +1,23 @@
-<%= turbo_stream.replace dom_id_for_cell(@shift_month, @staff, @date) do %>
-  <%= render partial: "shift_months/cell",
-            locals: { shift_month: @shift_month, staff: @staff, date: @date, assignment: @assignment, requested_off_map: nil } %>
+<%
+  start_date = Date.new(@shift_month.year, @shift_month.month, 1)
+  dates = (start_date..start_date.end_of_month).to_a
+
+  assignments = ShiftAssignment.where(shift_month_id: @shift_month.id)
+  assignment_map = Hash.new { |h, k| h[k] = {} }
+  assignments.each { |a| assignment_map[a.staff_id][a.date] = a }
+
+  requests = ShiftRequest.where(shift_month_id: @shift_month.id, kind: "off")
+  requested_off_map = Hash.new { |h, k| h[k] = {} }
+  requests.each { |r| requested_off_map[r.staff_id][r.date] = true }
+%>
+
+<%= turbo_stream.replace dom_id_for_row(@shift_month, @staff) do %>
+  <%= render partial: "shift_months/row",
+        locals: {
+          shift_month: @shift_month,
+          staff: @staff,
+          dates: dates,
+          assignment_map: assignment_map,
+          requested_off_map: requested_off_map
+        } %>
 <% end %>

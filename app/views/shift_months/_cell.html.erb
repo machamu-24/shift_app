@@ -1,11 +1,27 @@
-<%# locals: shift_month:, staff:, date:, assignment: %>
-<% kind = assignment&.kind %>
-<% label = (kind == "O" ? "休" : "") %>
+<%# locals: shift_month:, staff:, date:, assignment:, requested_off_map:, assignment_map: %>
+<% max_consecutive = ShiftGenerator::MAX_CONSECUTIVE_WORK %>
 
-<%# 希望休のconfirmは show側で requested_off_map を渡している前提 %>
-<% requested_off = defined?(requested_off_map) && requested_off_map&.dig(staff.id, date) == true %>
-<% will_change_to_work = (kind == "O") %>
-<% confirm_message = (requested_off && will_change_to_work) ? "出勤日に変更しても良いですか？" : nil %>
+<% current_kind = assignment&.kind || "D" %>
+<% next_kind = (current_kind == "D" ? "O" : "D") %>
+
+<% requested_off = requested_off_map&.dig(staff.id, date) == true %>
+
+<% label = (current_kind == "O" ? "休" : "") %>
+
+<% confirm_messages = [] %>
+
+<% if next_kind == "D" %>
+  <% if requested_off %>
+    <% confirm_messages << "出勤日に変更しても良いですか？" %>
+  <% end %>
+
+  <% span = consecutive_work_span_if_set_to_work(assignment_map, staff.id, date) %>
+  <% if span > max_consecutive %>
+    <% confirm_messages << "最大連勤#{max_consecutive}日を超えます（#{span}連勤）。変更しても良いですか？" %>
+  <% end %>
+<% end %>
+
+<% confirm_message = confirm_messages.any? ? confirm_messages.join("\n") : nil %>
 
 <%= turbo_frame_tag dom_id_for_cell(shift_month, staff, date) do %>
   <%= button_to label,

@@ -13,3 +13,8 @@
  *= require_tree .
  *= require_self
  */
+
+ /* 列ヘッダ（祝日・土日） */
+.col-sun { background: #ffecec; }
+.col-sat { background: #eef4ff; }
+.col-holiday { background: #fff2cc; }
