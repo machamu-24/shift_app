@@ -1,0 +1,16 @@
+<%= form_with model: staff, local: true do |f| %>
+  <div>
+    <%= f.label :name, "氏名" %><br>
+    <%= f.text_field :name %>
+  </div>
+
+  <div>
+    <%= f.label :active, "稼働（シフト対象）" %>
+    <%= f.check_box :active %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit %>
+    <%= link_to "一覧へ戻る", staffs_path %>
+  </div>
+<% end %>

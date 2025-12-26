@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  resources :staffs
+  resources :staffs, only: [:index, :new, :create, :edit, :update]
   resources :shift_months, only: [:index, :new, :create, :show] do
     post :generate, on: :member
     post :toggle_assignment, on: :member

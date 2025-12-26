@@ -2,9 +2,16 @@
 <p>毎日必要な日勤人数：<%= @shift_month.required_day_shifts %></p>
 <p>ステータス：<%= @shift_month.status %></p>
 
+<% flash.each do |key, msg| %>
+  <div style="padding:8px; margin:6px 0; border:1px solid #ddd; background:#f8f9fa;">
+    <strong><%= key %>:</strong> <%= msg %>
+  </div>
+<% end %>
+
 <div class="actions" style="margin-bottom: 10px;">
   <%= link_to "シフト作成月一覧", shift_months_path %>
   <%= link_to "ホームへ戻る", root_path %>
+  <%= link_to "スタッフ一覧", staffs_path %>
 </div>
 
 <% if @error_message.present? %>
