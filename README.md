@@ -1,24 +1,73 @@
-# README
+# shift_app
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+PT（理学療法士）向けの **シフト自動作成・編集支援アプリケーション** です。  
+毎月のシフト作成業務における「ゼロから埋める負担」と「確認作業」を軽減することを目的としています。
 
-Things you may want to cover:
+---
 
-* Ruby version
+## 概要（Overview）
 
-* System dependencies
+- 毎月のシフトを **自動生成**
+- **希望休は必須条件**として扱う
+- 解が存在しない場合は **エラーメッセージを表示**
+- 生成後は **カレンダー形式で手動編集可能**
+- **Turbo（Hotwire）** による部分更新で、ページ遷移なしの快適な操作性
 
-* Configuration
+---
 
-* Database creation
+## 主な機能（Features）
 
-* Database initialization
+### シフト自動生成
+- 対象：PTのみ
+- 勤務種別：日勤 / 休み
+- 毎日一定人数の日勤を自動割当
+- 希望休（必須）を考慮
+- 条件を満たせない場合は「最適解なし」として生成を中止
 
-* How to run the test suite
+### 希望休管理
+- スタッフごとに日付単位で希望休を登録
+- 同一スタッフ・同一日の重複登録は不可
+- 対象月以外の日付は登録不可
 
-* Services (job queues, cache servers, search engines, etc.)
+### カレンダー表示（勤務表）
+- 横軸：日付（曜日表示付き）
+- 縦軸：スタッフ名
+- 表示ルール：
+  - 休みのみ「休」と表示
+  - 出勤日は空欄
 
-* Deployment instructions
+### 手動編集（UI）
+- セルをクリックして「休 / 出勤」を切り替え
+- 希望休を出勤に変更する場合のみ **確認アラート** を表示
+- Turbo Streams により **ページスクロール位置を維持**
 
-* ...
+---
+
+## 技術スタック（Tech Stack）
+
+- Ruby on Rails 7
+- PostgreSQL
+- Hotwire（Turbo）
+- ERB（View）
+- Git / GitHub
+
+---
+
+## 画面構成（Screens）
+
+- スタッフ管理画面
+- 月次シフト条件入力画面
+- 月詳細画面
+  - 希望休登録
+  - シフト自動生成
+  - カレンダー形式の勤務表（手動編集対応）
+
+---
+
+## Roadmap
+
+- 土日・祝日の視覚的強調
+- スタッフ別勤務日数・連勤数の表示
+- 連勤制限や公平性を考慮した自動生成ロジック
+- CSV / PDF 出力
+- ログイン機能・施設単位での管理
