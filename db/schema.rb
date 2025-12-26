@@ -33,6 +33,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_14_083016) do
     t.string "status", default: "draft", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["year", "month"], name: "index_shift_months_on_year_and_month_unique", unique: true
   end
 
   create_table "shift_requests", force: :cascade do |t|

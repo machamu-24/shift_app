@@ -1,0 +1,12 @@
+<h1>シフト一覧</h1>
+
+<div class="actions" style="margin-bottom: 12px;">
+  <%= link_to "新規作成", new_shift_month_path %>
+  <%= link_to "ホーム", root_path %>
+</div>
+
+<ul>
+  <% @shift_months.each do |sm| %>
+    <li><%= link_to "#{sm.year}年#{sm.month}月", shift_month_path(sm) %></li>
+  <% end %>
+</ul>

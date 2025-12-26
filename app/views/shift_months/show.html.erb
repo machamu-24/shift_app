@@ -2,6 +2,11 @@
 <p>毎日必要な日勤人数：<%= @shift_month.required_day_shifts %></p>
 <p>ステータス：<%= @shift_month.status %></p>
 
+<div class="actions" style="margin-bottom: 10px;">
+  <%= link_to "シフト作成月一覧", shift_months_path %>
+  <%= link_to "ホームへ戻る", root_path %>
+</div>
+
 <% if @error_message.present? %>
   <hr>
   <h2><%= @error_message %></h2>

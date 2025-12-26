@@ -1,5 +1,10 @@
 <h1>シフト条件（新規作成）</h1>
 
+<div class="actions" style="margin-bottom: 10px;">
+  <%= link_to "シフト作成月一覧", shift_months_path %>
+  <%= link_to "ホームへ戻る", root_path %>
+</div>
+
 <%= form_with model: @shift_month do |f| %>
   <div>
     <%= f.label :year, "年" %>

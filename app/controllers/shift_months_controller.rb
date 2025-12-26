@@ -5,12 +5,32 @@ class ShiftMonthsController < ApplicationController
     @shift_month = ShiftMonth.new
   end
 
+  def index
+    @shift_months = ShiftMonth.order(year: :desc, month: :desc)
+  end
+
   def create
-    @shift_month = ShiftMonth.new(shift_month_params.merge(status: "draft"))
-    if @shift_month.save
-      redirect_to @shift_month
-    else
-      render :new, status: :unprocessable_entity
+    attrs = shift_month_params
+    year  = attrs[:year].to_i
+    month = attrs[:month].to_i
+
+    if (existing = ShiftMonth.find_by(year: year, month: month))
+      redirect_to existing, notice: "既に作成済みのシフトがあります。"
+      return
+    end
+
+    @shift_month = ShiftMonth.new(attrs.merge(status: "draft"))
+
+    begin
+      if @shift_month.save
+        redirect_to @shift_month, notice: "シフトを作成しました。"
+      else
+        flash.now[:alert] = @shift_month.errors.full_messages.to_sentence
+        render :new, status: :unprocessable_entity
+      end
+    rescue ActiveRecord::RecordNotUnique
+      existing = ShiftMonth.find_by!(year: year, month: month)
+      redirect_to existing, notice: "既に作成済みのシフトがあります。"
     end
   end
 
