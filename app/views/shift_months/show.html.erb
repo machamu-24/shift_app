@@ -70,6 +70,14 @@
 <hr>
 
 <%= button_to "シフトを自動生成", generate_shift_month_path(@shift_month), method: :post %>
+<%= link_to "CSV出力",
+      export_csv_shift_month_path(@shift_month),
+      class: "button",
+      data: { turbo: false } %>
+<%= link_to "PDF出力",
+      export_pdf_shift_month_path(@shift_month),
+      data: { turbo: false } %>
+
 
 <hr>
 
