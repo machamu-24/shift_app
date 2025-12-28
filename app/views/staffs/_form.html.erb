@@ -9,6 +9,11 @@
     <%= f.check_box :active, style: "width: auto; display: inline-block;" %>
   </div>
 
+  <div class="form-group">
+    <%= f.label :is_leader, "リーダー", style: "display: inline-block; margin-right: 0.5rem;" %>
+    <%= f.check_box :is_leader, style: "width: auto; display: inline-block;" %>
+  </div>
+
   <div class="actions flex gap-2" style="margin-top: 2rem;">
     <%= f.submit class: "button" %>
     <%= link_to "一覧へ戻る", staffs_path, class: "button secondary" %>

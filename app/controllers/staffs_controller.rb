@@ -31,9 +31,21 @@ class StaffsController < ApplicationController
     end
   end
 
+  def reorder
+    # params[:order] is an array of IDs in the new order
+    if params[:order].is_a?(Array)
+      Staff.transaction do
+        params[:order].each_with_index do |id, index|
+          Staff.where(id: id).update_all(position: index + 1)
+        end
+      end
+    end
+    head :ok
+  end
+
   private
 
   def staff_params
-    params.require(:staff).permit(:name, :active)
+    params.require(:staff).permit(:name, :active, :is_leader)
   end
 end
