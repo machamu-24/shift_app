@@ -57,17 +57,15 @@ class ShiftGenerator
       # 連勤数：前日までの連勤数（DB参照しない）
       consec = Hash.new(0)   # staff_id => 直近連勤数
 
+      rows = []
+      now  = Time.current
+
       dates.each do |date|
-        off_ids = requested_off[date] || Set.new
+        off_ids = requested_off[date] # default Set
 
-        # 希望休は候補から除外
         available_ids = staff_ids - off_ids.to_a
-
-        # 最低休日数（=土日祝数）を守る：上限勤務日数 max_work を超える人を候補から除外
         available_ids = available_ids.reject { |sid| d_counts[sid] >= max_work }
-
-        # 連勤制限：MAX_CONSECUTIVE_WORK 以上は除外
-        eligible_ids = available_ids.reject { |sid| consec[sid] >= MAX_CONSECUTIVE_WORK }
+        eligible_ids  = available_ids.reject { |sid| consec[sid] >= MAX_CONSECUTIVE_WORK }
 
         pool = (eligible_ids.size >= required) ? eligible_ids : available_ids
 
@@ -87,33 +85,42 @@ class ShiftGenerator
           )
         end
 
-        # D を割り当て
+        # D を積む
         day_workers.each do |sid|
-          ShiftAssignment.create!(
+          rows << {
             staff_id: sid,
             shift_month_id: @shift_month.id,
             date: date,
-            kind: DAY_SHIFT
-          )
+            kind: DAY_SHIFT,
+            created_at: now,
+            updated_at: now
+          }
           d_counts[sid] += 1
         end
 
-        # 残りは O（希望休も含む）
-        off_targets = staff_ids - day_workers
-        off_targets.each do |sid|
-          ShiftAssignment.create!(
+        # O を積む（希望休含む）
+        day_worker_set = day_workers.to_set
+        staff_ids.each do |sid|
+          next if day_worker_set.include?(sid)
+          rows << {
             staff_id: sid,
             shift_month_id: @shift_month.id,
             date: date,
-            kind: OFF
-          )
+            kind: OFF,
+            created_at: now,
+            updated_at: now
+          }
         end
 
-        # 連勤数の更新（DB参照しない）
-        # Dの人は連勤+1、Oの人は0
+        # 連勤数更新
         day_workers.each { |sid| consec[sid] += 1 }
-        off_targets.each { |sid| consec[sid] = 0 }
+        staff_ids.each do |sid|
+          next if day_worker_set.include?(sid)
+          consec[sid] = 0
+        end
       end
+
+      ShiftAssignment.insert_all!(rows)
 
       @shift_month.update!(status: "generated")
     end
