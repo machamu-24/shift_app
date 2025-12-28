@@ -3,6 +3,8 @@ class ShiftMonth < ApplicationRecord
   validates :month, inclusion: { in: 1..12 }
   validates :year, uniqueness: { scope: :month }
 
+  before_validation :set_default_required_day_shifts, on: :create
+
   validates :max_consecutive_work_days,
             numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 31 }
   validates :required_day_shifts_weekday,
@@ -24,5 +26,11 @@ class ShiftMonth < ApplicationRecord
 
   def required_for(date)
     sun_or_holiday?(date) ? required_day_shifts_sun_holiday : required_day_shifts_weekday
+  end
+
+  private
+
+  def set_default_required_day_shifts
+    self.required_day_shifts ||= 0
   end
 end

@@ -23,7 +23,7 @@
 
 <% confirm_message = confirm_messages.any? ? confirm_messages.join("\n") : nil %>
 
-<%= turbo_frame_tag dom_id_for_cell(shift_month, staff, date) do %>
+<%= turbo_frame_tag dom_id_for_cell(shift_month, staff, date), style: "display: block; width: 100%; height: 100%;" do %>
   <%= button_to label,
         toggle_assignment_shift_month_path(shift_month),
         method: :post,

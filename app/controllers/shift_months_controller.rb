@@ -3,8 +3,8 @@ require "csv"
 class ShiftMonthsController < ApplicationController
   def new
     @shift_month = ShiftMonth.new(
-      required_day_shifts_weekday: 3,
-      required_day_shifts_sun_holiday: 3,
+      required_day_shifts_weekday: 13,
+      required_day_shifts_sun_holiday: 5,
       max_consecutive_work_days: 5,
       status: "draft"
     )
