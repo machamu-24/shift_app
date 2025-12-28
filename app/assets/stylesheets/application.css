@@ -18,3 +18,81 @@
 .col-sun { background: #ffecec; }
 .col-sat { background: #eef4ff; }
 .col-holiday { background: #fff2cc; }
+
+.shift-calendar-wrapper {
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid #ddd;
+}
+
+.shift-calendar {
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.shift-calendar .summary-row {
+  position: sticky;
+  background: #f8f9fa;
+  font-weight: bold;
+  z-index: 5;
+  border-top: 2px solid #ccc;
+}
+
+.shift-calendar .summary-off-row {
+  bottom: 0;
+}
+
+.shift-calendar .summary-work-row {
+  bottom: 34px;
+}
+
+.shift-calendar .summary-row td {
+  height: 34px;
+  line-height: 34px;
+  padding: 0 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.shift-calendar .summary-label {
+  position: sticky;
+  left: 0;
+  background: #f8f9fa;
+  z-index: 6;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.shift-calendar .summary-work {
+  color: #0d6efd;
+  text-align: center;
+}
+
+.shift-calendar .summary-off {
+  color: #dc3545;
+  text-align: center;
+}
+
+.shift-calendar thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 20;
+}
+
+.shift-calendar th:first-child,
+.shift-calendar td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 30;
+  white-space: nowrap;
+}
+
+.shift-calendar thead th:first-child {
+  z-index: 40;
+}
+
+.shift-calendar .summary-row {
+  z-index: 10;
+}

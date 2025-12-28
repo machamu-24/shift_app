@@ -101,8 +101,8 @@
   <p>まだ生成されていません。</p>
 <% else %>
 
-  <div style="overflow-x: auto;">
-    <table border="1" cellpadding="6" style="border-collapse: collapse; white-space: nowrap;">
+  <div class="shift-calendar-wrapper">
+    <table class="shift-calendar" border="1" cellpadding="6">
       <thead>
         <tr>
         <th>名前</th>
@@ -127,6 +127,28 @@
                   requested_off_map: @requested_off_map
                 } %>
         <% end %>
+
+        <tr class="summary-row summary-work-row">
+          <td class="summary-label">出勤</td>
+          <% @dates.each do |date| %>
+            <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
+            <% working_count = assignments_for_date.count { |k| k == ShiftGenerator::DAY_SHIFT } %>
+            <td class="summary-work">
+              <%= working_count %>
+            </td>
+          <% end %>
+        </tr>
+
+        <tr class="summary-row summary-off-row">
+          <td class="summary-label">休み</td>
+          <% @dates.each do |date| %>
+            <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
+            <% off_count = assignments_for_date.count { |k| k == ShiftGenerator::OFF } %>
+            <td class="summary-off">
+              <%= off_count %>
+            </td>
+          <% end %>
+        </tr>
       </tbody>
     </table>
   </div>
