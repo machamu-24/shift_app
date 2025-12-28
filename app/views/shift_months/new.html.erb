@@ -6,21 +6,6 @@
   <%= link_to "スタッフ一覧", staffs_path %>
 </div>
 
-<%= form_with model: @shift_month do |f| %>
-  <div>
-    <%= f.label :year, "年" %>
-    <%= f.number_field :year, value: Date.today.year %>
-  </div>
+<%= render "form", shift_month: @shift_month, submit_label: "作成" %>
 
-  <div>
-    <%= f.label :month, "月" %>
-    <%= f.number_field :month, value: Date.today.month %>
-  </div>
 
-  <div>
-    <%= f.label :required_day_shifts, "毎日必要な日勤人数" %>
-    <%= f.number_field :required_day_shifts, value: 3, min: 1 %>
-  </div>
-
-  <%= f.submit "作成" %>
-<% end %>

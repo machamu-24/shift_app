@@ -1,5 +1,6 @@
 <h1><%= @shift_month.year %>年 <%= @shift_month.month %>月</h1>
-<p>毎日必要な日勤人数：<%= @shift_month.required_day_shifts %></p>
+<p>平日必要人数：<%= @shift_month.required_day_shifts_weekday %> / 日・祝必要人数：<%= @shift_month.required_day_shifts_sun_holiday %></p>
+<p>連勤上限：<%= @shift_month.max_consecutive_work_days %> 日</p>
 <p>ステータス：<%= @shift_month.status %></p>
 
 <% flash.each do |key, msg| %>
@@ -12,6 +13,7 @@
   <%= link_to "シフト作成月一覧", shift_months_path %>
   <%= link_to "ホームへ戻る", root_path %>
   <%= link_to "スタッフ一覧", staffs_path %>
+  <%= link_to "この月の条件を編集", edit_shift_month_path(@shift_month) %>
 </div>
 
 <% if @error_message.present? %>

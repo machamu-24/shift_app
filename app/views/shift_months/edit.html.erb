@@ -1,0 +1,8 @@
+<h1>シフト条件（編集）</h1>
+
+<div class="actions" style="margin-bottom: 10px;">
+  <%= link_to "この月へ戻る", @shift_month %>
+  <%= link_to "シフト作成月一覧", shift_months_path %>
+</div>
+
+<%= render "form", shift_month: @shift_month, submit_label: "更新" %>

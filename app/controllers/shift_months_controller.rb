@@ -2,7 +2,17 @@ require "csv"
 
 class ShiftMonthsController < ApplicationController
   def new
-    @shift_month = ShiftMonth.new
+    @shift_month = ShiftMonth.new(
+      required_day_shifts_weekday: 3,
+      required_day_shifts_sun_holiday: 3,
+      max_consecutive_work_days: 5,
+      status: "draft"
+    )
+    @existing_shift_months = ShiftMonth.order(year: :desc, month: :desc)
+  end
+
+  def edit
+    @shift_month = ShiftMonth.find(params[:id])
   end
 
   def index
@@ -32,6 +42,42 @@ class ShiftMonthsController < ApplicationController
       existing = ShiftMonth.find_by!(year: year, month: month)
       redirect_to existing, notice: "既に作成済みのシフトがあります。"
     end
+  end
+
+  def update
+    @shift_month = ShiftMonth.find(params[:id])
+
+    before = @shift_month.slice(
+      "max_consecutive_work_days",
+      "required_day_shifts_weekday",
+      "required_day_shifts_sun_holiday"
+    )
+
+    ActiveRecord::Base.transaction do
+      if @shift_month.update(shift_month_params)
+        after = @shift_month.slice(
+          "max_consecutive_work_days",
+          "required_day_shifts_weekday",
+          "required_day_shifts_sun_holiday"
+        )
+
+        settings_changed = (before != after)
+
+        if settings_changed
+          ShiftGenerator.new(shift_month: @shift_month).call!
+          redirect_to @shift_month, notice: "設定を更新し、シフトを自動で再生成しました。"
+        else
+          redirect_to @shift_month, notice: "設定を更新しました。"
+        end
+      else
+        flash.now[:alert] = @shift_month.errors.full_messages.to_sentence
+        render :edit, status: :unprocessable_entity
+      end
+    end
+  rescue NoSolutionError => e
+    flash.now[:alert] = e.message
+    @shortages = e.shortages || []
+    render :edit, status: :unprocessable_entity
   end
 
   def show
@@ -216,6 +262,13 @@ class ShiftMonthsController < ApplicationController
   private
 
   def shift_month_params
-    params.require(:shift_month).permit(:year, :month, :required_day_shifts)
+    params.require(:shift_month).permit(
+      :year,
+      :month,
+      :required_day_shifts_weekday,
+      :required_day_shifts_sun_holiday,
+      :max_consecutive_work_days,
+      :required_day_shifts
+    )
   end
 end

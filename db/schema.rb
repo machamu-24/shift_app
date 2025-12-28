@@ -33,6 +33,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_14_083016) do
     t.string "status", default: "draft", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "max_consecutive_work_days", default: 5, null: false
+    t.integer "required_day_shifts_weekday", default: 0, null: false
+    t.integer "required_day_shifts_sun_holiday", default: 0, null: false
     t.index ["year", "month"], name: "index_shift_months_on_year_and_month_unique", unique: true
   end
 

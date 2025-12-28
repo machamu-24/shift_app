@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   resources :staffs, only: [:index, :new, :create, :edit, :update]
-  resources :shift_months, only: [:index, :new, :create, :show] do
+  resources :shift_months, only: [:index, :new, :create, :show, :edit, :update] do
     post :generate, on: :member
     post :toggle_assignment, on: :member
     get :export_csv, on: :member

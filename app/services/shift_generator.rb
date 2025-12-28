@@ -11,7 +11,6 @@ class ShiftGenerator
     ActiveRecord::Base.transaction do
       staff_ids = Staff.where(active: true).order(:id).pluck(:id)
       dates     = month_dates(@shift_month.year, @shift_month.month)
-      required  = @shift_month.required_day_shifts
 
       # 希望休（必須）
       requested_off = ShiftRequest
@@ -26,7 +25,7 @@ class ShiftGenerator
       max_work = dates.size - h
 
       # 生成前の不可能判定（総量）
-      required_slots = dates.size * required
+      required_slots = dates.sum { |d| @shift_month.required_for(d) }
       supply_slots   = staff_ids.size * max_work
       if supply_slots < required_slots
         raise NoSolutionError.new(
@@ -61,11 +60,13 @@ class ShiftGenerator
       now  = Time.current
 
       dates.each do |date|
+        required = @shift_month.required_for(date)
+        max_consec = @shift_month.max_consecutive_work_days
         off_ids = requested_off[date] # default Set
 
         available_ids = staff_ids - off_ids.to_a
         available_ids = available_ids.reject { |sid| d_counts[sid] >= max_work }
-        eligible_ids  = available_ids.reject { |sid| consec[sid] >= MAX_CONSECUTIVE_WORK }
+        eligible_ids  = available_ids.reject { |sid| consec[sid] >= max_consec }
 
         pool = (eligible_ids.size >= required) ? eligible_ids : available_ids
 
@@ -137,9 +138,8 @@ class ShiftGenerator
   end
 
   def compute_shortages(staff_ids:, dates:, requested_off:)
-    required = @shift_month.required_day_shifts
-
     dates.filter_map do |date|
+      required = @shift_month.required_for(date)
       off_ids = requested_off[date] || Set.new
       available = staff_ids.size - off_ids.size
       next if available >= required
