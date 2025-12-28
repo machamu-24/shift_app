@@ -1,157 +1,180 @@
-<h1><%= @shift_month.year %>年 <%= @shift_month.month %>月</h1>
-<p>平日必要人数：<%= @shift_month.required_day_shifts_weekday %> / 日・祝必要人数：<%= @shift_month.required_day_shifts_sun_holiday %></p>
-<p>連勤上限：<%= @shift_month.max_consecutive_work_days %> 日</p>
-<p>ステータス：<%= @shift_month.status %></p>
+<div class="mb-4">
+  <% flash.each do |key, msg| %>
+    <div class="alert alert-<%= key == 'notice' ? 'notice' : 'alert' %>">
+      <%= msg %>
+    </div>
+  <% end %>
+</div>
 
-<% flash.each do |key, msg| %>
-  <div style="padding:8px; margin:6px 0; border:1px solid #ddd; background:#f8f9fa;">
-    <strong><%= key %>:</strong> <%= msg %>
+<div class="card">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1 style="margin-bottom: 0.5rem;"><%= @shift_month.year %>年 <%= @shift_month.month %>月</h1>
+      <div style="color: var(--text-muted);">
+        ステータス: <span style="font-weight: 600;"><%= @shift_month.status %></span>
+      </div>
+    </div>
+    <div>
+      <%= link_to "条件を編集", edit_shift_month_path(@shift_month), class: "button secondary" %>
+    </div>
   </div>
-<% end %>
-
-<div class="actions" style="margin-bottom: 10px;">
-  <%= link_to "シフト作成月一覧", shift_months_path %>
-  <%= link_to "ホームへ戻る", root_path %>
-  <%= link_to "スタッフ一覧", staffs_path %>
-  <%= link_to "この月の条件を編集", edit_shift_month_path(@shift_month) %>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1rem; background: var(--background-bg); border-radius: var(--radius-md);">
+    <div>
+      <div style="font-size: 0.875rem; color: var(--text-muted);">平日必要人数</div>
+      <div style="font-size: 1.25rem; font-weight: 700;"><%= @shift_month.required_day_shifts_weekday %>名</div>
+    </div>
+    <div>
+      <div style="font-size: 0.875rem; color: var(--text-muted);">日・祝必要人数</div>
+      <div style="font-size: 1.25rem; font-weight: 700;"><%= @shift_month.required_day_shifts_sun_holiday %>名</div>
+    </div>
+    <div>
+      <div style="font-size: 0.875rem; color: var(--text-muted);">連勤上限</div>
+      <div style="font-size: 1.25rem; font-weight: 700;"><%= @shift_month.max_consecutive_work_days %>日</div>
+    </div>
+  </div>
 </div>
 
 <% if @error_message.present? %>
-  <hr>
-  <h2><%= @error_message %></h2>
-  <% if @shortages.any? %>
-    <ul>
-      <% @shortages.first(5).each do |s| %>
-        <li>
-          <%= s["date"] %>：必要 <%= s["required"] %> 名 / 可能 <%= s["available"] %> 名（不足 <%= s["shortage"] %> 名）
-        </li>
-      <% end %>
-      <% if @shortages.size > 5 %>
-        <li>ほか <%= @shortages.size - 5 %> 日</li>
-      <% end %>
-    </ul>
-  <% end %>
-<% end %>
-
-<hr>
-
-<h2>希望休（必須）を追加</h2>
-
-<%= form_with model: [@shift_month, @shift_request], local: true do |f| %>
-  <div>
-    <%= f.label :staff_id, "スタッフ" %>
-    <%= f.collection_select :staff_id, @staffs, :id, :name, prompt: "選択してください" %>
-  </div>
-
-  <div>
-    <%= f.label :date, "日付" %>
-    <%= f.date_field :date %>
-  </div>
-
-  <%= f.submit "希望休を追加" %>
-<% end %>
-
-<hr>
-<h2>登録済み希望休</h2>
-
-<% if @requests.empty? %>
-  <p>まだ登録がありません。</p>
-<% else %>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>日付</th>
-        <th>スタッフ</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @requests.each do |r| %>
-        <tr>
-          <td><%= r.date %></td>
-          <td><%= r.staff.name %></td>
-          <td>
-            <%= button_to "削除", shift_month_shift_request_path(@shift_month, r),
-                  method: :delete,
-                  data: { turbo_confirm: "削除しますか？" } %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-<% end %>
-
-<hr>
-
-<%= button_to "シフトを自動生成", generate_shift_month_path(@shift_month), method: :post %>
-<%= link_to "CSV出力",
-      export_csv_shift_month_path(@shift_month),
-      class: "button",
-      data: { turbo: false } %>
-<%= link_to "PDF出力",
-      export_pdf_shift_month_path(@shift_month),
-      data: { turbo: false } %>
-
-
-<hr>
-
-<h2>勤務表（カレンダー）</h2>
-
-<% has_assignments = @assignment_map.values.any? { |by_date| by_date.present? } %>
-
-<% if !has_assignments %>
-  <p>まだ生成されていません。</p>
-<% else %>
-
-  <div class="shift-calendar-wrapper">
-    <table class="shift-calendar" border="1" cellpadding="6">
-      <thead>
-        <tr>
-        <th>名前</th>
-          <% @dates.each do |date| %>
-            <th class="<%= date_header_class(date) %>" title="<%= holiday_name(date) %>">
-              <div><%= date.day %></div>
-              <div style="font-size: 12px;"><%= %w(日 月 火 水 木 金 土)[date.wday] %></div>
-            </th>
-          <% end %>
-        
-        </tr>
-      </thead>
-
-      <tbody>
-        <% @staffs.each do |staff| %>
-          <%= render partial: "shift_months/row",
-                locals: {
-                  shift_month: @shift_month,
-                  staff: staff,
-                  dates: @dates,
-                  assignment_map: @assignment_map,
-                  requested_off_map: @requested_off_map
-                } %>
+  <div class="alert alert-alert mb-4">
+    <h3 style="margin-top: 0; color: #991b1b;"><%= @error_message %></h3>
+    <% if @shortages.any? %>
+      <ul style="margin-bottom: 0; padding-left: 1.5rem;">
+        <% @shortages.first(5).each do |s| %>
+          <li>
+            <%= s["date"] %>：必要 <%= s["required"] %>名 / 可能 <%= s["available"] %>名（不足 <strong><%= s["shortage"] %></strong>名）
+          </li>
         <% end %>
-
-        <tr class="summary-row summary-work-row">
-          <td class="summary-label">出勤</td>
-          <% @dates.each do |date| %>
-            <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
-            <% working_count = assignments_for_date.count { |k| k == ShiftGenerator::DAY_SHIFT } %>
-            <td class="summary-work">
-              <%= working_count %>
-            </td>
-          <% end %>
-        </tr>
-
-        <tr class="summary-row summary-off-row">
-          <td class="summary-label">休み</td>
-          <% @dates.each do |date| %>
-            <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
-            <% off_count = assignments_for_date.count { |k| k == ShiftGenerator::OFF } %>
-            <td class="summary-off">
-              <%= off_count %>
-            </td>
-          <% end %>
-        </tr>
-      </tbody>
-    </table>
+        <% if @shortages.size > 5 %>
+          <li>ほか <%= @shortages.size - 5 %> 日</li>
+        <% end %>
+      </ul>
+    <% end %>
   </div>
 <% end %>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+  <div class="card" style="margin-bottom: 0;">
+    <h2>希望休（必須）を追加</h2>
+    <%= form_with model: [@shift_month, @shift_request], local: true do |f| %>
+      <div class="form-group">
+        <%= f.label :staff_id, "スタッフ" %>
+        <%= f.collection_select :staff_id, @staffs, :id, :name, { prompt: "選択してください" } %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :date, "日付" %>
+        <%= f.date_field :date %>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <%= f.submit "希望休を追加", class: "button", style: "width: 100%;" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="card" style="margin-bottom: 0;">
+    <h2>登録済み希望休</h2>
+    <% if @requests.empty? %>
+      <p style="color: var(--text-muted);">まだ登録がありません。</p>
+    <% else %>
+      <div style="max-height: 300px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>スタッフ</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @requests.each do |r| %>
+              <tr>
+                <td><%= r.date %></td>
+                <td><%= r.staff.name %></td>
+                <td style="text-align: right;">
+                  <%= button_to "削除", shift_month_shift_request_path(@shift_month, r),
+                        method: :delete,
+                        class: "button danger",
+                        style: "padding: 0.25rem 0.5rem; font-size: 0.75rem;",
+                        data: { turbo_confirm: "削除しますか？" } %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-center mb-4">
+    <h2 style="margin: 0;">勤務表（カレンダー）</h2>
+    <div class="flex gap-2">
+      <%= button_to "シフトを自動生成", generate_shift_month_path(@shift_month), method: :post, class: "button" %>
+      <%= link_to "CSV出力", export_csv_shift_month_path(@shift_month), class: "button secondary", data: { turbo: false } %>
+      <%= link_to "PDF出力", export_pdf_shift_month_path(@shift_month), class: "button secondary", data: { turbo: false } %>
+    </div>
+  </div>
+
+  <% has_assignments = @assignment_map.values.any? { |by_date| by_date.present? } %>
+
+  <% if !has_assignments %>
+    <p style="text-align: center; padding: 2rem; color: var(--text-muted);">シフトはまだ生成されていません。「シフトを自動生成」ボタンを押してください。</p>
+  <% else %>
+    <!-- CALENDAR START -->
+    <div class="shift-calendar-wrapper">
+      <table class="shift-calendar" border="1" cellpadding="6">
+        <thead>
+          <tr>
+          <th>名前</th>
+            <% @dates.each do |date| %>
+              <th class="<%= date_header_class(date) %>" title="<%= holiday_name(date) %>">
+                <div><%= date.day %></div>
+                <div style="font-size: 12px;"><%= %w(日 月 火 水 木 金 土)[date.wday] %></div>
+              </th>
+            <% end %>
+          
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @staffs.each do |staff| %>
+            <%= render partial: "shift_months/row",
+                  locals: {
+                    shift_month: @shift_month,
+                    staff: staff,
+                    dates: @dates,
+                    assignment_map: @assignment_map,
+                    requested_off_map: @requested_off_map
+                  } %>
+          <% end %>
+
+          <tr class="summary-row summary-work-row">
+            <td class="summary-label">出勤</td>
+            <% @dates.each do |date| %>
+              <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
+              <% working_count = assignments_for_date.count { |k| k == ShiftGenerator::DAY_SHIFT } %>
+              <td class="summary-work">
+                <%= working_count %>
+              </td>
+            <% end %>
+          </tr>
+
+          <tr class="summary-row summary-off-row">
+            <td class="summary-label">休み</td>
+            <% @dates.each do |date| %>
+              <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
+              <% off_count = assignments_for_date.count { |k| k == ShiftGenerator::OFF } %>
+              <td class="summary-off">
+                <%= off_count %>
+              </td>
+            <% end %>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- CALENDAR END -->
+  <% end %>
+</div>

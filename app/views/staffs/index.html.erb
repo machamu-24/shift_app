@@ -1,27 +1,35 @@
-<h1>スタッフ一覧</h1>
-
-<div class="actions">
-  <%= link_to "スタッフ追加", new_staff_path %>
-  <%= link_to "ホームへ戻る", root_path %>
+<div class="flex justify-between items-center mb-4">
+  <h1 style="margin-bottom: 0;">スタッフ一覧</h1>
+  <%= link_to "スタッフ追加", new_staff_path, class: "button" %>
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>氏名</th>
-      <th>稼働</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @staffs.each do |s| %>
+<div class="card" style="padding: 0; overflow: hidden; border: none; box-shadow: var(--shadow-md);">
+  <table>
+    <thead>
       <tr>
-        <td><%= s.id %></td>
-        <td><%= s.name %></td>
-        <td><%= s.active ? "active" : "inactive" %></td>
-        <td><%= link_to "編集", edit_staff_path(s) %></td>
+        <th style="width: 60px;">ID</th>
+        <th>氏名</th>
+        <th>ステータス</th>
+        <th style="width: 100px; text-align: center;">操作</th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% @staffs.each do |s| %>
+        <tr>
+          <td style="color: var(--text-muted);"><%= s.id %></td>
+          <td style="font-weight: 500; font-size: 1.1rem;"><%= s.name %></td>
+          <td>
+            <% if s.active %>
+              <span style="display: inline-block; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 9999px; background-color: #dcfce7; color: #166534; font-weight: 600;">稼働中</span>
+            <% else %>
+              <span style="display: inline-block; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 9999px; background-color: #f1f5f9; color: #64748b; font-weight: 600;">停止中</span>
+            <% end %>
+          </td>
+          <td class="text-center">
+            <%= link_to "編集", edit_staff_path(s), class: "button secondary", style: "padding: 0.4rem 1rem; font-size: 0.875rem;" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

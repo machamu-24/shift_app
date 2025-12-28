@@ -1,11 +1,6 @@
-<h1>シフト条件（新規作成）</h1>
-
-<div class="actions" style="margin-bottom: 10px;">
-  <%= link_to "シフト作成月一覧", shift_months_path %>
-  <%= link_to "ホームへ戻る", root_path %>
-  <%= link_to "スタッフ一覧", staffs_path %>
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+  <h1 style="text-align: center; margin-bottom: 2rem;">シフト条件（新規作成）</h1>
+  <%= render "form", shift_month: @shift_month, submit_label: "作成" %>
 </div>
-
-<%= render "form", shift_month: @shift_month, submit_label: "作成" %>
 
 

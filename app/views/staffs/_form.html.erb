@@ -1,16 +1,16 @@
 <%= form_with model: staff, local: true do |f| %>
-  <div>
-    <%= f.label :name, "氏名" %><br>
+  <div class="form-group">
+    <%= f.label :name, "氏名" %>
     <%= f.text_field :name %>
   </div>
 
-  <div>
-    <%= f.label :active, "稼働（シフト対象）" %>
-    <%= f.check_box :active %>
+  <div class="form-group">
+    <%= f.label :active, "稼働（シフト対象）", style: "display: inline-block; margin-right: 0.5rem;" %>
+    <%= f.check_box :active, style: "width: auto; display: inline-block;" %>
   </div>
 
-  <div class="actions">
-    <%= f.submit %>
-    <%= link_to "一覧へ戻る", staffs_path %>
+  <div class="actions flex gap-2" style="margin-top: 2rem;">
+    <%= f.submit class: "button" %>
+    <%= link_to "一覧へ戻る", staffs_path, class: "button secondary" %>
   </div>
 <% end %>

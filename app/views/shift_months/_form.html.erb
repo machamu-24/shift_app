@@ -1,36 +1,40 @@
 <%= form_with model: shift_month do |f| %>
-  <div>
-    <%= f.label :year, "年" %>
-    <%= f.number_field :year, value: (shift_month.year || Date.today.year) %>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <div class="form-group">
+      <%= f.label :year, "年" %>
+      <%= f.number_field :year, value: (shift_month.year || Date.today.year) %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :month, "月" %>
+      <%= f.number_field :month, value: (shift_month.month || Date.today.month) %>
+    </div>
   </div>
 
-  <div>
-    <%= f.label :month, "月" %>
-    <%= f.number_field :month, value: (shift_month.month || Date.today.month) %>
-  </div>
+  <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border-color);">
 
-  <hr>
-
-  <div>
+  <div class="form-group">
     <%= f.label :required_day_shifts_weekday, "平日に必要な日勤人数" %>
     <%= f.number_field :required_day_shifts_weekday, value: (shift_month.required_day_shifts_weekday.presence || 3), min: 0 %>
   </div>
 
-  <div>
+  <div class="form-group">
     <%= f.label :required_day_shifts_sun_holiday, "日・祝に必要な日勤人数" %>
     <%= f.number_field :required_day_shifts_sun_holiday, value: (shift_month.required_day_shifts_sun_holiday.presence || 3), min: 0 %>
   </div>
 
-  <div>
+  <div class="form-group">
     <%= f.label :max_consecutive_work_days, "連勤上限（日数）" %>
     <%= f.number_field :max_consecutive_work_days, value: (shift_month.max_consecutive_work_days.presence || 5), min: 1 %>
   </div>
 
   <% if shift_month.persisted? %>
-    <p style="margin-top:10px; padding:8px; border:1px solid #ddd; background:#fff3cd;">
+    <div class="alert alert-notice" style="background-color: #fff7ed; color: #9a3412; border-color: #ffedd5;">
       設定を変更すると、保存時にシフトを自動で再生成します（既存の割当は作り直されます）。
-    </p>
+    </div>
   <% end %>
 
-  <%= f.submit submit_label %>
+  <div style="margin-top: 2rem;">
+    <%= f.submit submit_label, class: "button", style: "width: 100%;" %>
+  </div>
 <% end %>

@@ -6,11 +6,35 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body>
-    <%= yield %>
+    <header class="site-header">
+      <div class="container header-container">
+        <%= link_to "ShiftApp", root_path, class: "logo" %>
+        <nav class="main-nav">
+          <%= link_to "シフト一覧", shift_months_path, class: "nav-link" %>
+          <%= link_to "スタッフ一覧", staffs_path, class: "nav-link" %>
+        </nav>
+      </div>
+    </header>
+
+    <main class="site-main">
+      <div class="container">
+        <%= yield %>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>&copy; <%= Time.current.year %> ShiftApp</p>
+      </div>
+    </footer>
   </body>
 </html>
