@@ -1,7 +1,7 @@
 require "csv"
 
 class ShiftMonthsController < ApplicationController
-  before_action :require_admin, only: [:create, :destroy, :generate]
+  before_action :require_admin, only: [:new, :create, :destroy, :generate]
 
   def new
     @shift_month = ShiftMonth.new(

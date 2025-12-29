@@ -14,7 +14,7 @@
       </div>
     </div>
     <div style="display: flex; gap: 0.5rem;">
-      <%= link_to "希望休申請へ", shift_month_my_requests_path(@shift_month), class: "button", style: "background-color: var(--accent-color);" unless current_staff.admin? %>
+      <%= link_to "希望休申請へ", shift_month_my_requests_path(@shift_month), class: "button", style: "background-color: var(--accent-color);" %>
       
       <% if current_staff.admin? %>
         <%= button_to @shift_month.is_confirmed ? "確定解除（ロック解除）" : "シフト確定（ロック）", confirm_shift_month_path(@shift_month), method: :patch, class: "button", style: "background-color: #{@shift_month.is_confirmed ? 'var(--text-muted)' : 'var(--danger-color)'};" %>
@@ -57,6 +57,7 @@
   </div>
 <% end %>
 
+<% if current_staff.admin? %>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
   <div class="card" style="margin-bottom: 0;">
     <h2>希望休（必須）を追加</h2>
@@ -111,12 +112,15 @@
     <% end %>
   </div>
 </div>
+<% end %>
 
 <div class="card">
   <div class="flex justify-between items-center mb-4">
     <h2 style="margin: 0;">勤務表（カレンダー）</h2>
     <div class="flex gap-2">
-      <%= button_to "シフトを自動生成", generate_shift_month_path(@shift_month), method: :post, class: "button" %>
+      <% if current_staff.admin? %>
+        <%= button_to "シフトを自動生成", generate_shift_month_path(@shift_month), method: :post, class: "button" %>
+      <% end %>
       <%= link_to "CSV出力", export_csv_shift_month_path(@shift_month), class: "button secondary", data: { turbo: false } %>
       <%= link_to "PDF出力", export_pdf_shift_month_path(@shift_month), class: "button secondary", data: { turbo: false } %>
     </div>

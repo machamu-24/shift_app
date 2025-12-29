@@ -18,5 +18,5 @@ Rails.application.routes.draw do
   post 'login', to: 'sessions#create'
   delete 'logout', to: 'sessions#destroy'
 
-  root "shift_months#new"
+  root "shift_months#index"
 end
