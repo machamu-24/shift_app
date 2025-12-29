@@ -165,11 +165,18 @@ class ShiftMonthsController < ApplicationController
 
     assignments = ShiftAssignment.where(shift_month_id: shift_month.id)
     assignment_map = Hash.new { |h, k| h[k] = {} }
-    assignments.each { |a| assignment_map[a.staff_id][a.date] = a.kind }
+    
+    # 集計用カウンター
+    daily_counts = Hash.new { |h, k| h[k] = { "D" => 0, "O" => 0 } }
+
+    assignments.each do |a|
+      assignment_map[a.staff_id][a.date] = a.kind
+      daily_counts[a.date][a.kind] += 1
+    end
 
     csv = CSV.generate(force_quotes: true) do |out|
-      # ヘッダ：名前 + 日付(曜日)
-      header = ["名前"] + dates.map { |d| "#{d.strftime('%Y-%m-%d')} (#{%w(日 月 火 水 木 金 土)[d.wday]})" }
+      # ヘッダ：名前 + 日付のみ
+      header = ["名前"] + dates.map { |d| d.day.to_s }
       out << header
 
       staffs.each do |staff|
@@ -178,9 +185,20 @@ class ShiftMonthsController < ApplicationController
           kind = assignment_map.dig(staff.id, date) || "D"
           # 表示ルール：休みのみ「休」、出勤は空欄
           row << (kind == "O" ? "休" : "")
+          
+          # assignments に D が存在しない場合（ロジック上ありえないが念のため）、空なら D としてカウント
+          # (ただし上記の each でカウント済みなので、ここでのカウントは不要。あくまでDBの値を信じる)
         end
         out << row
       end
+
+      # 集計行：出勤人数
+      work_counts = ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] }
+      out << work_counts
+
+      # 集計行：休み人数
+      off_counts = ["休み人数"] + dates.map { |d| daily_counts[d]["O"] }
+      out << off_counts
     end
 
     filename = "shift_#{shift_month.year}_#{format('%02d', shift_month.month)}.csv"
@@ -197,7 +215,13 @@ class ShiftMonthsController < ApplicationController
 
     assignments = ShiftAssignment.where(shift_month_id: shift_month.id)
     assignment_map = Hash.new { |h, k| h[k] = {} }
-    assignments.each { |a| assignment_map[a.staff_id][a.date] = a.kind }
+    
+    daily_counts = Hash.new { |h, k| h[k] = { "D" => 0, "O" => 0 } }
+    
+    assignments.each do |a|
+      assignment_map[a.staff_id][a.date] = a.kind
+      daily_counts[a.date][a.kind] += 1
+    end
 
     pdf = Prawn::Document.new(page_layout: :landscape, margin: 20)
 
@@ -223,8 +247,8 @@ class ShiftMonthsController < ApplicationController
     pdf.move_down 10
 
     # === テーブル作成 ===
-    wdays = %w(日 月 火 水 木 金 土)
-    header = ["名前"] + dates.map { |d| "#{d.day}\n#{wdays[d.wday]}" }
+    # ヘッダー：日付のみ
+    header = ["名前"] + dates.map { |d| d.day.to_s }
 
     table_data = [header]
     staffs.each do |staff|
@@ -236,6 +260,10 @@ class ShiftMonthsController < ApplicationController
       table_data << row
     end
 
+    # 集計行を追加
+    table_data << ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] }
+    table_data << ["休み人数"] + dates.map { |d| daily_counts[d]["O"] }
+
     pdf.table(
       table_data,
       header: true,
@@ -246,10 +274,31 @@ class ShiftMonthsController < ApplicationController
         padding: [3, 3, 3, 3]
       }
     ) do
+      # ヘッダー行スタイル
       row(0).font_style = :bold
       row(0).background_color = "EEEEEE"
+      
+      # 左端列（名前列）スタイル
       columns(0).align = :left
       columns(0).width = 90
+      
+      # 集計行スタイル（下2行）
+      row(-2..-1).background_color = "F8F9FA"
+      row(-2..-1).font_style = :bold
+
+      # 土日祝のカラーリング
+      dates.each_with_index do |date, i|
+        # テーブル上の列インデックス（名前列が0番目なので +1）
+        col_index = i + 1
+
+        if date.sunday?
+          columns(col_index).background_color = "FFECEC" # .col-sun
+        elsif date.saturday?
+          columns(col_index).background_color = "EEF4FF" # .col-sat
+        elsif HolidayJapan.check(date)
+          columns(col_index).background_color = "FFF2CC" # .col-holiday
+        end
+      end
     end
 
     filename = "shift_#{shift_month.year}_#{format('%02d', shift_month.month)}.pdf"
