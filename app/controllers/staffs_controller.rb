@@ -1,4 +1,6 @@
 class StaffsController < ApplicationController
+  before_action :require_admin
+
   def index
     @staffs = Staff.order(active: :desc, id: :asc)
   end

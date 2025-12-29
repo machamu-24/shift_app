@@ -2,6 +2,9 @@ class ShiftMonth < ApplicationRecord
   validates :year, :month, presence: true
   validates :month, inclusion: { in: 1..12 }
   validates :year, uniqueness: { scope: :month }
+  
+  has_many :shift_assignments, dependent: :destroy
+  has_many :shift_requests, dependent: :destroy
 
   before_validation :set_default_required_day_shifts, on: :create
 

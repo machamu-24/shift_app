@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_28_115112) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_29_010135) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -58,6 +58,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_28_115112) do
     t.datetime "updated_at", null: false
     t.boolean "is_leader", default: false, null: false
     t.integer "position"
+    t.string "email"
+    t.string "password_digest"
+    t.integer "role", default: 0, null: false
+    t.index ["email"], name: "index_staffs_on_email"
   end
 
   add_foreign_key "shift_assignments", "shift_months"

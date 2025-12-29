@@ -5,16 +5,22 @@
 
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
   <% @shift_months.each do |sm| %>
-    <%= link_to shift_month_path(sm), class: "card", style: "display: block; color: inherit; text-decoration: none; transition: transform 0.2s; border-left: 4px solid var(--primary-color);" do %>
-      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-        <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">
-          <%= sm.year %>年 <span style="font-size: 2rem;"><%= sm.month %></span>月
-        </span>
+    <div class="card" style="display: block; position: relative; border-left: 4px solid var(--primary-color);">
+      <%= link_to shift_month_path(sm), style: "display: block; color: inherit; text-decoration: none; transition: transform 0.2s; padding-bottom: 2rem;" do %>
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+          <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">
+            <%= sm.year %>年 <span style="font-size: 2rem;"><%= sm.month %></span>月
+          </span>
+        </div>
+        <div style="color: var(--text-muted); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <%= sm.status == 'completed' ? 'var(--success-color)' : 'var(--secondary-color)' %>"></span>
+          <%= sm.status %>
+        </div>
+      <% end %>
+
+      <div style="position: absolute; bottom: 1rem; right: 1rem;">
+        <%= button_to "削除", shift_month_path(sm), method: :delete, class: "button danger", style: "padding: 0.4rem 0.8rem; font-size: 0.8rem;", form: { data: { turbo_confirm: "#{sm.year}年#{sm.month}月のシフトデータを削除しますか？" } } %>
       </div>
-      <div style="color: var(--text-muted); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
-        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: <%= sm.status == 'completed' ? 'var(--success-color)' : 'var(--secondary-color)' %>"></span>
-        <%= sm.status %>
-      </div>
-    <% end %>
+    </div>
   <% end %>
 </div>

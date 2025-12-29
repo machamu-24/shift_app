@@ -1,6 +1,8 @@
 require "csv"
 
 class ShiftMonthsController < ApplicationController
+  before_action :require_admin, only: [:create, :destroy, :generate, :toggle_assignment]
+
   def new
     @shift_month = ShiftMonth.new(
       required_day_shifts_weekday: 13,
@@ -78,6 +80,12 @@ class ShiftMonthsController < ApplicationController
     flash.now[:alert] = e.message
     @shortages = e.shortages || []
     render :edit, status: :unprocessable_entity
+  end
+
+  def destroy
+    shift_month = ShiftMonth.find(params[:id])
+    shift_month.destroy
+    redirect_to shift_months_path, notice: "#{shift_month.year}年#{shift_month.month}月のシフトデータを削除しました。"
   end
 
   def show

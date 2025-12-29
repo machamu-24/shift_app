@@ -4,13 +4,17 @@ Rails.application.routes.draw do
       patch :reorder
     end
   end
-  resources :shift_months, only: [:index, :new, :create, :show, :edit, :update] do
+  resources :shift_months, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
     post :generate, on: :member
     post :toggle_assignment, on: :member
     get :export_csv, on: :member
     get :export_pdf, on: :member
     resources :shift_requests, only: [:create, :destroy]
   end
+
+  get 'login', to: 'sessions#new'
+  post 'login', to: 'sessions#create'
+  delete 'logout', to: 'sessions#destroy'
 
   root "shift_months#new"
 end

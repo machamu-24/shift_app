@@ -19,8 +19,18 @@
       <div class="container header-container">
         <%= link_to "ShiftApp", root_path, class: "logo" %>
         <nav class="main-nav">
-          <%= link_to "シフト一覧", shift_months_path, class: "nav-link" %>
-          <%= link_to "スタッフ一覧", staffs_path, class: "nav-link" %>
+          <% if logged_in? %>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-right: 1rem; color: var(--text-muted); font-size: 0.875rem;">
+              <%= current_staff.name %> (<%= current_staff.admin? ? "管理者" : "一般" %>)
+            </div>
+            <%= link_to "シフト一覧", shift_months_path, class: "nav-link" %>
+            <% if current_staff.admin? %>
+              <%= link_to "スタッフ管理", staffs_path, class: "nav-link" %>
+            <% end %>
+            <%= button_to "ログアウト", logout_path, method: :delete, class: "nav-link", style: "background: none; border: none; cursor: pointer; padding: 0; font: inherit;" %>
+          <% else %>
+            <span class="nav-link">ログインしてください</span>
+          <% end %>
         </nav>
       </div>
     </header>
