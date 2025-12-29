@@ -1,7 +1,7 @@
 require "csv"
 
 class ShiftMonthsController < ApplicationController
-  before_action :require_admin, only: [:create, :destroy, :generate, :toggle_assignment]
+  before_action :require_admin, only: [:create, :destroy, :generate]
 
   def new
     @shift_month = ShiftMonth.new(
@@ -138,6 +138,12 @@ class ShiftMonthsController < ApplicationController
   def toggle_assignment
     @shift_month = ShiftMonth.find(params[:id])
 
+    unless current_staff.admin?
+      if @shift_month.is_confirmed
+        return render turbo_stream: turbo_stream.replace("flash", partial: "layouts/flash", locals: { alert: "この月は確定済みのため編集できません。" })
+      end
+    end
+
     staff_id = params.require(:staff_id).to_i
     date     = Date.parse(params.require(:date))
 
@@ -162,6 +168,18 @@ class ShiftMonthsController < ApplicationController
       format.turbo_stream
       format.html { redirect_to @shift_month, notice: "勤務を更新しました" }
     end
+  end
+
+  def confirm
+    @shift_month = ShiftMonth.find(params[:id])
+    if current_staff.admin?
+      new_status = !@shift_month.is_confirmed
+      @shift_month.update(is_confirmed: new_status)
+      flash[:notice] = new_status ? "シフトを確定しました（編集ロック）。" : "シフトの確定を解除しました（編集可能）。"
+    else
+      flash[:alert] = "権限がありません。"
+    end
+    redirect_to @shift_month
   end
 
   def export_csv

@@ -1,0 +1,44 @@
+<div style="max-width: 600px; margin: 0 auto;">
+  <div class="flex justify-between items-center mb-4">
+    <h1 style="margin-bottom: 0; font-size: 1.5rem;"><%= @shift_month.year %>年 <%= @shift_month.month %>月 希望休</h1>
+    <%= link_to "戻る", shift_months_path, class: "button secondary", style: "font-size: 0.875rem; padding: 0.25rem 0.75rem;" %>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size: 1.25rem; margin-top: 0;">希望休を追加</h2>
+    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">休みたい日付を選択して追加してください。</p>
+
+    <%= form_with model: [@shift_month, @new_request], url: shift_month_my_requests_path(@shift_month), local: true do |f| %>
+      <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+        <div style="flex-grow: 1;">
+          <%= f.date_field :date, 
+              min: Date.new(@shift_month.year, @shift_month.month, 1), 
+              max: Date.new(@shift_month.year, @shift_month.month, 1).end_of_month,
+              class: "form-control", style: "width: 100%; box-sizing: border-box; padding: 0.75rem; font-size: 1.1rem;" %>
+        </div>
+        <div style="flex-shrink: 0;">
+          <%= f.submit "追加", class: "button", style: "padding: 0.75rem 1.5rem; font-size: 1rem;" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="card" style="margin-top: 1.5rem;">
+    <h2 style="font-size: 1.25rem; margin-top: 0;">申請済みリスト</h2>
+    <% if @requests.any? %>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <% @requests.each do |req| %>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--background-bg); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-weight: 700; font-size: 1.1rem;"><%= req.date.day %>日</span>
+              <span style="font-size: 0.875rem; color: var(--text-muted);">(<%= %w(日 月 火 水 木 金 土)[req.date.wday] %>)</span>
+            </div>
+            <%= button_to "削除", shift_month_my_request_path(@shift_month, req), method: :delete, class: "button danger", style: "padding: 0.25rem 0.5rem; font-size: 0.75rem;", form: { data: { turbo_confirm: "この希望休を取り消しますか？" } } %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p style="color: var(--text-muted); text-align: center; padding: 2rem 0;">まだ申請はありません。</p>
+    <% end %>
+  </div>
+</div>

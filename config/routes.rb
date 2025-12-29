@@ -10,6 +10,8 @@ Rails.application.routes.draw do
     get :export_csv, on: :member
     get :export_pdf, on: :member
     resources :shift_requests, only: [:create, :destroy]
+    resources :my_requests, only: [:index, :create, :destroy]
+    patch :confirm, on: :member
   end
 
   get 'login', to: 'sessions#new'

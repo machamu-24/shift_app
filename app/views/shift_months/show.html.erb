@@ -1,21 +1,25 @@
-<div class="mb-4">
-  <% flash.each do |key, msg| %>
-    <div class="alert alert-<%= key == 'notice' ? 'notice' : 'alert' %>">
-      <%= msg %>
-    </div>
-  <% end %>
-</div>
+
 
 <div class="card">
   <div class="flex justify-between items-center mb-4">
     <div>
       <h1 style="margin-bottom: 0.5rem;"><%= @shift_month.year %>年 <%= @shift_month.month %>月</h1>
-      <div style="color: var(--text-muted);">
-        ステータス: <span style="font-weight: 600;"><%= @shift_month.status %></span>
+      <div style="color: var(--text-muted); display: flex; align-items: center; gap: 1rem;">
+        <span>ステータス: <span style="font-weight: 600;"><%= @shift_month.status %></span></span>
+        <% if @shift_month.is_confirmed %>
+           <span style="color: var(--danger-color); font-weight: 700;">🔒 確定済み（編集ロック）</span>
+        <% else %>
+           <span style="color: var(--success-color); font-weight: 700;">🖊️ 編集中（入力可）</span>
+        <% end %>
       </div>
     </div>
-    <div>
-      <%= link_to "条件を編集", edit_shift_month_path(@shift_month), class: "button secondary" %>
+    <div style="display: flex; gap: 0.5rem;">
+      <%= link_to "希望休申請へ", shift_month_my_requests_path(@shift_month), class: "button", style: "background-color: var(--accent-color);" unless current_staff.admin? %>
+      
+      <% if current_staff.admin? %>
+        <%= button_to @shift_month.is_confirmed ? "確定解除（ロック解除）" : "シフト確定（ロック）", confirm_shift_month_path(@shift_month), method: :patch, class: "button", style: "background-color: #{@shift_month.is_confirmed ? 'var(--text-muted)' : 'var(--danger-color)'};" %>
+        <%= link_to "条件を編集", edit_shift_month_path(@shift_month), class: "button secondary" %>
+      <% end %>
     </div>
   </div>
   
