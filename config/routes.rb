@@ -14,6 +14,8 @@ Rails.application.routes.draw do
     patch :confirm, on: :member
   end
 
+  resource :profile, only: [:edit, :update]
+
   get 'login', to: 'sessions#new'
   post 'login', to: 'sessions#create'
   delete 'logout', to: 'sessions#destroy'

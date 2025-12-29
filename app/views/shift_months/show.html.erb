@@ -69,7 +69,9 @@
 
       <div class="form-group">
         <%= f.label :date, "日付" %>
-        <%= f.date_field :date %>
+        <%= f.date_field :date,
+            min: Date.new(@shift_month.year, @shift_month.month, 1),
+            max: Date.new(@shift_month.year, @shift_month.month, 1).end_of_month %>
       </div>
 
       <div style="margin-top: 1.5rem;">
