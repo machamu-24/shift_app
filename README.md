@@ -80,7 +80,7 @@ erDiagram
 
 ## 画面遷移図
 ```mermaid
-graph TD
+graph LR
     Login[ログイン画面] -->|認証成功| Root{"トップページ<br>(シフト月一覧)"}
 
     subgraph 全ユーザー
