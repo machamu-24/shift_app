@@ -90,7 +90,7 @@ graph TD
 
     ShiftShow -->|希望提出| MyRequests[自分の希望提出]
     ShiftShow -->|管理者| ShiftAdjust[シフト調整]
-    ShiftShow -->|管理者| PDFExport[PDF出力]
+    ShiftShow --> PDFExport[PDF出力]
 ```
 
 ## 開発環境
