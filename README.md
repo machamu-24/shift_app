@@ -82,15 +82,21 @@ erDiagram
 ```mermaid
 graph TD
     Login[ログイン画面] -->|認証成功| Root{"トップページ<br>(シフト月一覧)"}
-    Root -->|管理者| StaffIndex[スタッフ一覧]
-    Root -->|選択| ShiftShow[シフト詳細/編集画面]
-    
-    StaffIndex --> StaffNew[スタッフ登録]
-    StaffIndex --> StaffEdit[スタッフ編集]
 
-    ShiftShow -->|希望提出| MyRequests[自分の希望提出]
-    ShiftShow -->|管理者| ShiftAdjust[シフト調整]
-    ShiftShow --> PDFExport[PDF出力]
+    subgraph 全ユーザー
+        Root -->|選択| ShiftShow[シフト詳細]
+        ShiftShow -->|希望提出| MyRequests[自分の希望提出]
+        ShiftShow -->|ダウンロード| PDFExport[PDF出力]
+    end
+
+    subgraph 管理者のみ
+        Root -->|管理| StaffIndex[スタッフ一覧]
+        StaffIndex --> StaffNew[スタッフ登録]
+        StaffIndex --> StaffEdit[スタッフ編集]
+
+        ShiftShow -->|調整| ShiftAdjust[シフト調整]
+        ShiftShow -->|設定変更| ShiftEdit[設定編集]
+    end
 ```
 
 ## 開発環境
