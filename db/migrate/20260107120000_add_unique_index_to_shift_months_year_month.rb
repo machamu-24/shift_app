@@ -46,10 +46,14 @@ class AddUniqueIndexToShiftMonthsYearMonth < ActiveRecord::Migration[7.1]
       SQL
     end
 
+    return if index_exists?(:shift_months, %i[year month], name: "index_shift_months_on_year_and_month_unique")
+
     add_index :shift_months, %i[year month], unique: true, name: "index_shift_months_on_year_and_month_unique"
   end
 
   def down
+    return unless index_exists?(:shift_months, %i[year month], name: "index_shift_months_on_year_and_month_unique")
+
     remove_index :shift_months, name: "index_shift_months_on_year_and_month_unique"
   end
 end
