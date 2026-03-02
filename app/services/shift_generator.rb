@@ -108,10 +108,10 @@ class ShiftGenerator
           # スコアリング（優先度計算）
           # 優先度高: 連勤数が少ない > 勤務回数が少ない
           # ソフト制約：なるべく連勤数を少なくする -> straight_days をスコアに含める
-          score_func = ->(sid) { [consec[sid], d_counts[sid], sid] }
+          score_func = ->(sid) { [consec[sid], d_counts[sid]] }
 
-          # リーダーをまず1名選出（スコア順）
-          best_leader = available_leaders.min_by(&score_func)
+          # リーダーをまず1名選出（スコア順、同点の場合はシャッフルによるランダム）
+          best_leader = available_leaders.shuffle.min_by(&score_func)
           picked_workers << best_leader
 
           # 残りの候補者リストを再構築（選ばれたリーダーを除く）
@@ -136,8 +136,8 @@ class ShiftGenerator
         end
 
         # 残りのメンバーを選出
-        # ソート基準: 連勤数(昇順) -> 勤務回数(昇順)
-        sorted_candidates = min_pool.sort_by { |sid| [consec[sid], d_counts[sid], sid] }
+        # シャッフルした上で、ソート基準: 連勤数(昇順) -> 勤務回数(昇順)
+        sorted_candidates = min_pool.shuffle.sort_by { |sid| [consec[sid], d_counts[sid]] }
         picked_workers.concat(sorted_candidates.take(remainder))
 
         day_workers = picked_workers
