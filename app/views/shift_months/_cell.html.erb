@@ -42,11 +42,12 @@
     <%= form_with url: toggle_assignment_shift_month_path(shift_month), method: :post, data: { turbo: true }, style: "position: absolute; top:0; left:0; width:100%; height:100%;" do |f| %>
       <%= f.hidden_field :staff_id, value: staff.id %>
       <%= f.hidden_field :date, value: date.to_s %>
+      <% js_submit = confirm_message.present? ? "if(confirm('#{escape_javascript(confirm_message)}')) { this.form.requestSubmit(); } else { this.value = '#{escape_javascript(current_kind)}'; }" : "this.form.requestSubmit();" %>
       <%= f.select :kind,
             ShiftAssignment::HUMAN_KINDS.map { |k, v| [v.presence || "出", k] },
             { selected: current_kind },
             class: "calendar-cell-hidden-select",
-            data: confirm_message.present? ? { action: "change->this#form#requestSubmit", turbo_confirm: confirm_message } : { action: "change->this#form#requestSubmit" } %>
+            onchange: js_submit %>
     <% end %>
   </div>
 <% end %>
