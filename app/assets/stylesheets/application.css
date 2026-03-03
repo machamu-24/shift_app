@@ -375,42 +375,71 @@ label {
   height: 36px;
 }
 
-/* Calendar Buttons Override */
-.calendar-cell-button {
+/* Calendar Cell Wrapper Technique */
+.calendar-cell-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.calendar-cell-hidden-select {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  z-index: 10;
+}
+
+.calendar-cell-label {
   width: 100%;
   height: 100%;
   display: flex !important;
   justify-content: center;
   align-items: center;
-  border: none !important;
-  border-radius: 0 !important;
   font-size: 0.85rem !important;
   font-weight: 700 !important;
-  cursor: pointer;
-  padding: 0 !important;
   transition: all 0.1s ease;
+  pointer-events: none;
+  /* Let clicks pass through to the select */
 }
 
 /* Work Shift (Invisible/Hover effect) */
-.calendar-cell-button.is-work {
+.calendar-cell-label.is-work {
   background-color: transparent !important;
   color: transparent !important;
 }
 
-.calendar-cell-button.is-work:hover {
+/* Since pointer-events is none on the label, hover must be triggered on the wrapper to light up */
+.calendar-cell-wrapper:hover .calendar-cell-label.is-work {
   background-color: #f1f5f9 !important;
-  /* Subtle hover */
 }
 
 /* Off Shift (Stylish) */
-.calendar-cell-button.is-off {
+.calendar-cell-label.is-off {
   background-color: #fee2e2 !important;
   /* Soft Red */
   color: #ef4444 !important;
 }
 
-.calendar-cell-button.is-off:hover {
+.calendar-cell-wrapper:hover .calendar-cell-label.is-off {
   background-color: #fecaca !important;
+}
+
+/* Special Leave (Stylish) */
+.calendar-cell-label.is-special {
+  background-color: #e0e7ff !important;
+  /* Soft Indigo */
+  color: #4f46e5 !important;
+}
+
+.calendar-cell-wrapper:hover .calendar-cell-label.is-special {
+  background-color: #c7d2fe !important;
 }
 
 
