@@ -195,8 +195,8 @@ class ShiftMonthsController < ApplicationController
     assignments = ShiftAssignment.where(shift_month_id: shift_month.id)
     assignment_map = Hash.new { |h, k| h[k] = {} }
     
-    # 集計用カウンター
-    daily_counts = Hash.new { |h, k| h[k] = { "D" => 0, "O" => 0 } }
+    # 集計行用カウンター
+    daily_counts = Hash.new { |h, k| h[k] = Hash.new(0) }
 
     assignments.each do |a|
       assignment_map[a.staff_id][a.date] = a.kind
@@ -204,25 +204,38 @@ class ShiftMonthsController < ApplicationController
     end
 
     csv = CSV.generate(force_quotes: true) do |out|
-      # ヘッダ：名前 + 日付のみ
-      header = ["名前"] + dates.map { |d| d.day.to_s }
+      # ヘッダ：名前 + 日付のみ + 休日合計 + 年休・厚休
+      header = ["名前"] + dates.map { |d| d.day.to_s } + ["休日合計", "年休・厚休"]
       out << header
 
       staffs.each do |staff|
         row = [staff.name]
+        holiday_count = 0
+        special_leave_count = 0
+
         dates.each do |date|
           kind = assignment_map.dig(staff.id, date) || "D"
           row << ShiftAssignment::HUMAN_KINDS[kind]
+
+          if kind != "D"
+            holiday_count += 1
+          end
+          if kind == "nen" || kind == "kousei"
+            special_leave_count += 1
+          end
         end
+
+        row << holiday_count
+        row << special_leave_count
         out << row
       end
 
       # 集計行：出勤人数
-      work_counts = ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] }
+      work_counts = ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] } + ["", ""]
       out << work_counts
 
       # 集計行：休み人数
-      off_counts = ["休み人数"] + dates.map { |d| daily_counts[d]["O"] }
+      off_counts = ["休み人数"] + dates.map { |d| daily_counts[d]["O"] } + ["", ""]
       out << off_counts
     end
 
@@ -241,7 +254,7 @@ class ShiftMonthsController < ApplicationController
     assignments = ShiftAssignment.where(shift_month_id: shift_month.id)
     assignment_map = Hash.new { |h, k| h[k] = {} }
     
-    daily_counts = Hash.new { |h, k| h[k] = { "D" => 0, "O" => 0 } }
+    daily_counts = Hash.new { |h, k| h[k] = Hash.new(0) }
     
     assignments.each do |a|
       assignment_map[a.staff_id][a.date] = a.kind
@@ -272,22 +285,35 @@ class ShiftMonthsController < ApplicationController
     pdf.move_down 10
 
     # === テーブル作成 ===
-    # ヘッダー：日付のみ
-    header = ["名前"] + dates.map { |d| d.day.to_s }
+    # ヘッダー：日付のみ + 休日合計 + 年休・厚休
+    header = ["名前"] + dates.map { |d| d.day.to_s } + ["休日合計", "年休・厚休"]
 
     table_data = [header]
     staffs.each do |staff|
       row = [staff.name]
+      holiday_count = 0
+      special_leave_count = 0
+
       dates.each do |date|
         kind = assignment_map.dig(staff.id, date) || "D"
         row << ShiftAssignment::HUMAN_KINDS[kind]
+        
+        if kind != "D"
+          holiday_count += 1
+        end
+        if kind == "nen" || kind == "kousei"
+          special_leave_count += 1
+        end
       end
+      
+      row << holiday_count
+      row << special_leave_count
       table_data << row
     end
 
     # 集計行を追加
-    table_data << ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] }
-    table_data << ["休み人数"] + dates.map { |d| daily_counts[d]["O"] }
+    table_data << ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] } + ["", ""]
+    table_data << ["休み人数"] + dates.map { |d| daily_counts[d]["O"] } + ["", ""]
 
     pdf.table(
       table_data,
