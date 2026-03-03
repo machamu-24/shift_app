@@ -24,11 +24,35 @@
 <% confirm_message = confirm_messages.any? ? confirm_messages.join("\n") : nil %>
 
 <%= turbo_frame_tag dom_id_for_cell(shift_month, staff, date), style: "display: block; width: 100%; height: 100%;" do %>
-  <%= button_to label,
-        toggle_assignment_shift_month_path(shift_month),
-        method: :post,
-        params: { staff_id: staff.id, date: date.to_s },
-        form: { style: "width: 100%; height: 100%;" },
-        class: "calendar-cell-button #{current_kind == 'O' ? 'is-off' : 'is-work'}",
-        data: (confirm_message ? { turbo_confirm: confirm_message } : {}) %>
+<% if current_kind == "D" || current_kind.blank? %>
+  <%= form_with url: toggle_assignment_shift_month_path(shift_month), method: :post, data: { turbo: true } do |f| %>
+    <%= f.hidden_field :staff_id, value: staff.id %>
+    <%= f.hidden_field :date, value: date.to_s %>
+    
+    <% if confirm_message %>
+      <%= f.select :kind,
+            ShiftAssignment::HUMAN_KINDS.map { |k, v| [v.presence || "出", k] },
+            { selected: current_kind },
+            class: "calendar-cell-select is-work",
+            data: { action: "change->this#form#requestSubmit", turbo_confirm: confirm_message } %>
+    <% else %>
+      <%= f.select :kind,
+            ShiftAssignment::HUMAN_KINDS.map { |k, v| [v.presence || "出", k] },
+            { selected: current_kind },
+            class: "calendar-cell-select is-work",
+            data: { action: "change->this#form#requestSubmit" } %>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= form_with url: toggle_assignment_shift_month_path(shift_month), method: :post, data: { turbo: true } do |f| %>
+    <%= f.hidden_field :staff_id, value: staff.id %>
+    <%= f.hidden_field :date, value: date.to_s %>
+    
+    <%= f.select :kind,
+          ShiftAssignment::HUMAN_KINDS.map { |k, v| [v.presence || "出", k] },
+          { selected: current_kind },
+          class: "calendar-cell-select is-off",
+          data: { action: "change->this#form#requestSubmit" } %>
+  <% end %>
+<% end %>
 <% end %>

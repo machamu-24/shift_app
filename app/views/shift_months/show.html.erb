@@ -36,6 +36,13 @@
       <div style="font-size: 0.875rem; color: var(--text-muted);">連勤上限</div>
       <div style="font-size: 1.25rem; font-weight: 700;"><%= @shift_month.max_consecutive_work_days %>日</div>
     </div>
+    <%
+      base_holidays = @dates.count { |d| d.saturday? || d.sunday? || HolidayJapan.check(d) }
+    %>
+    <div>
+      <div style="font-size: 0.875rem; color: var(--text-muted);">基本休日（土日祝）</div>
+      <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-color);"><%= base_holidays %>日</div>
+    </div>
   </div>
 </div>
 
@@ -145,7 +152,8 @@
                 <div style="font-size: 12px;"><%= %w(日 月 火 水 木 金 土)[date.wday] %></div>
               </th>
             <% end %>
-          
+            <th style="min-width: 60px;">休日<br>合計</th>
+            <th style="min-width: 60px;">年休・<br>厚休</th>
           </tr>
         </thead>
 
@@ -164,23 +172,25 @@
           <tr class="summary-row summary-work-row">
             <td class="summary-label">出勤</td>
             <% @dates.each do |date| %>
-              <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
-              <% working_count = assignments_for_date.count { |k| k == ShiftGenerator::DAY_SHIFT } %>
+              <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind || "D" } %>
+              <% working_count = assignments_for_date.count { |k| k == "D" } %>
               <td class="summary-work">
                 <%= working_count %>
               </td>
             <% end %>
+            <td colspan="2" style="background-color: #f8f9fa;"></td>
           </tr>
 
           <tr class="summary-row summary-off-row">
             <td class="summary-label">休み</td>
             <% @dates.each do |date| %>
-              <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind } %>
-              <% off_count = assignments_for_date.count { |k| k == ShiftGenerator::OFF } %>
+              <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind || "D" } %>
+              <% off_count = assignments_for_date.count { |k| k != "D" } %>
               <td class="summary-off">
                 <%= off_count %>
               </td>
             <% end %>
+            <td colspan="2" style="background-color: #f8f9fa;"></td>
           </tr>
         </tbody>
       </table>

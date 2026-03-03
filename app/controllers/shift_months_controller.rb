@@ -150,15 +150,18 @@ class ShiftMonthsController < ApplicationController
     @staff = Staff.find(staff_id)
     @date  = date
 
-    @assignment = ShiftAssignment.find_or_create_by!(
+    @assignment = ShiftAssignment.find_or_initialize_by(
       shift_month_id: @shift_month.id,
       staff_id: staff_id,
       date: date
-    ) do |a|
-      a.kind = "D"
+    )
+    
+    if params[:kind].present?
+      @assignment.kind = params[:kind]
+    else
+      @assignment.kind = (@assignment.kind == "D" ? "O" : "D")
     end
-
-    @assignment.kind = (@assignment.kind == "D" ? "O" : "D")
+    
     @assignment.save!
 
     start_date = Date.new(@shift_month.year, @shift_month.month, 1)
@@ -209,11 +212,7 @@ class ShiftMonthsController < ApplicationController
         row = [staff.name]
         dates.each do |date|
           kind = assignment_map.dig(staff.id, date) || "D"
-          # 表示ルール：休みのみ「休」、出勤は空欄
-          row << (kind == "O" ? "休" : "")
-          
-          # assignments に D が存在しない場合（ロジック上ありえないが念のため）、空なら D としてカウント
-          # (ただし上記の each でカウント済みなので、ここでのカウントは不要。あくまでDBの値を信じる)
+          row << ShiftAssignment::HUMAN_KINDS[kind]
         end
         out << row
       end
@@ -281,7 +280,7 @@ class ShiftMonthsController < ApplicationController
       row = [staff.name]
       dates.each do |date|
         kind = assignment_map.dig(staff.id, date) || "D"
-        row << (kind == "O" ? "休" : "")
+        row << ShiftAssignment::HUMAN_KINDS[kind]
       end
       table_data << row
     end

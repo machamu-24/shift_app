@@ -18,4 +18,16 @@
             } %>
     </td>
   <% end %>
+
+  <%
+    staff_assignments = dates.map { |d| assignment_map.dig(staff.id, d)&.kind || "D" }
+    holiday_count = staff_assignments.count { |k| k != "D" }
+    special_leave_count = staff_assignments.count { |k| k == "nen" || k == "kousei" }
+  %>
+  <td style="text-align: center; font-weight: bold; background-color: #f8f9fa;">
+    <%= holiday_count %>
+  </td>
+  <td style="text-align: center; font-weight: bold; background-color: #f8f9fa;">
+    <%= special_leave_count %>
+  </td>
 </tr>
