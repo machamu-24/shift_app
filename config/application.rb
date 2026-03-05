@@ -14,6 +14,8 @@ module ShiftApp
     config.autoload_lib(ignore: %w(assets tasks))
     config.autoload_paths << Rails.root.join("app/errors")
 
+    config.i18n.default_locale = :ja
+
    
   end
 end

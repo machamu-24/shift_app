@@ -1,0 +1,14 @@
+ja:
+  activerecord:
+    models:
+      shift_request: "希望休"
+      staff: "スタッフ"
+      shift_month: "シフト月"
+    attributes:
+      shift_request:
+        staff_id: "スタッフ"
+        date: "日付"
+      staff:
+        name: "名前"
+      shift_month:
+        status: "ステータス"

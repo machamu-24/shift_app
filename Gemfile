@@ -72,3 +72,5 @@ gem "holiday_japan"
 gem "prawn"
 gem "prawn-table"
 
+gem "rails-i18n"
+
