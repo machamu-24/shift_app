@@ -1,4 +1,6 @@
 class ShiftRequestsController < ApplicationController
+  before_action :require_admin
+
   def create
     shift_month = ShiftMonth.find(params[:shift_month_id])
 
