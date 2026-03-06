@@ -7,6 +7,11 @@ class MyRequestsController < ApplicationController
   end
 
   def create
+    if @shift_month.request_deadline_passed?
+      redirect_to shift_month_my_requests_path(@shift_month), alert: "申請期限（#{@shift_month.request_deadline}）を過ぎているため、希望休の申請はできません。"
+      return
+    end
+
     @request = @shift_month.shift_requests.build(request_params)
     @request.staff_id = current_staff.id # 念のため強制上書き
 

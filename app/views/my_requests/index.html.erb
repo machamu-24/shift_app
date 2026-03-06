@@ -6,20 +6,32 @@
 
   <div class="card">
     <h2 style="font-size: 1.25rem; margin-top: 0;">希望休を追加</h2>
-    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">休みたい日付を選択して追加してください。</p>
 
-    <%= form_with model: [@shift_month, @new_request], url: shift_month_my_requests_path(@shift_month), local: true do |f| %>
-      <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-        <div style="flex-grow: 1;">
-          <%= f.date_field :date, 
-              min: Date.new(@shift_month.year, @shift_month.month, 1), 
-              max: Date.new(@shift_month.year, @shift_month.month, 1).end_of_month,
-              class: "form-control", style: "width: 100%; box-sizing: border-box; padding: 0.75rem; font-size: 1.1rem;" %>
-        </div>
-        <div style="flex-shrink: 0;">
-          <%= f.submit "追加", class: "button", style: "padding: 0.75rem 1.5rem; font-size: 1rem;" %>
-        </div>
+    <% if @shift_month.request_deadline_passed? %>
+      <div style="background-color: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem;">
+        <strong>申請期限切れ（<%= @shift_month.request_deadline.strftime("%Y年%m月%d日") %>まで）</strong><br>
+        <span style="font-size: 0.875rem;">希望休の申請期限を過ぎているため、新たな申請はできません。</span>
       </div>
+    <% else %>
+      <% if @shift_month.request_deadline.present? %>
+        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">申請期限: <strong><%= @shift_month.request_deadline.strftime("%Y年%m月%d日") %></strong>まで</p>
+      <% else %>
+        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">休みたい日付を選択して追加してください。</p>
+      <% end %>
+
+      <%= form_with model: [@shift_month, @new_request], url: shift_month_my_requests_path(@shift_month), local: true do |f| %>
+        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+          <div style="flex-grow: 1;">
+            <%= f.date_field :date,
+                min: Date.new(@shift_month.year, @shift_month.month, 1),
+                max: Date.new(@shift_month.year, @shift_month.month, 1).end_of_month,
+                class: "form-control", style: "width: 100%; box-sizing: border-box; padding: 0.75rem; font-size: 1.1rem;" %>
+          </div>
+          <div style="flex-shrink: 0;">
+            <%= f.submit "追加", class: "button", style: "padding: 0.75rem 1.5rem; font-size: 1rem;" %>
+          </div>
+        </div>
+      <% end %>
     <% end %>
   </div>
 

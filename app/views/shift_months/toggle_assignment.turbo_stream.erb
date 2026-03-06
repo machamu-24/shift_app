@@ -11,6 +11,7 @@
   requests.each { |r| requested_off_map[r.staff_id][r.date] = true }
 %>
 
+<%# スタッフ行を更新 %>
 <%= turbo_stream.replace dom_id_for_row(@shift_month, @staff) do %>
   <%= render partial: "shift_months/row",
         locals: {
@@ -20,4 +21,34 @@
           assignment_map: assignment_map,
           requested_off_map: requested_off_map
         } %>
+<% end %>
+
+<%# 出勤集計行を更新 %>
+<%= turbo_stream.replace "summary-work-row-#{@shift_month.id}" do %>
+  <tr id="summary-work-row-<%= @shift_month.id %>" class="summary-row summary-work-row">
+    <td class="summary-label">出勤</td>
+    <% dates.each do |date| %>
+      <% assignments_for_date = @staffs.map { |s| assignment_map.dig(s.id, date)&.kind || "D" } %>
+      <% working_count = assignments_for_date.count { |k| ShiftAssignment.work_kind?(k) } %>
+      <td class="summary-work">
+        <%= working_count %>
+      </td>
+    <% end %>
+    <td colspan="2" style="background-color: #f8f9fa;"></td>
+  </tr>
+<% end %>
+
+<%# 休み集計行を更新 %>
+<%= turbo_stream.replace "summary-off-row-#{@shift_month.id}" do %>
+  <tr id="summary-off-row-<%= @shift_month.id %>" class="summary-row summary-off-row">
+    <td class="summary-label">休み</td>
+    <% dates.each do |date| %>
+      <% assignments_for_date = @staffs.map { |s| assignment_map.dig(s.id, date)&.kind || "D" } %>
+      <% off_count = assignments_for_date.count { |k| ShiftAssignment.off_kind?(k) } %>
+      <td class="summary-off">
+        <%= off_count %>
+      </td>
+    <% end %>
+    <td colspan="2" style="background-color: #f8f9fa;"></td>
+  </tr>
 <% end %>

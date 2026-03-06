@@ -64,4 +64,60 @@ class ShiftMonthTest < ActiveSupport::TestCase
     assert_equal 5, @shift_month.required_for(friday)
     assert_equal 3, @shift_month.required_for(sunday)
   end
+
+  test "request_deadline_passed? returns false when deadline is nil" do
+    @shift_month.request_deadline = nil
+    assert_not @shift_month.request_deadline_passed?
+  end
+
+  test "request_deadline_passed? returns false when deadline is today" do
+    @shift_month.request_deadline = Date.current
+    assert_not @shift_month.request_deadline_passed?
+  end
+
+  test "request_deadline_passed? returns true when deadline is yesterday" do
+    @shift_month.request_deadline = Date.current - 1
+    assert @shift_month.request_deadline_passed?
+  end
+
+  test "request_deadline_passed? returns false when deadline is tomorrow" do
+    @shift_month.request_deadline = Date.current + 1
+    assert_not @shift_month.request_deadline_passed?
+  end
+
+  test "status_label returns correct label for draft" do
+    @shift_month.status = "draft"
+    @shift_month.is_confirmed = false
+    assert_equal "未生成", @shift_month.status_label
+  end
+
+  test "status_label returns correct label for generated" do
+    @shift_month.status = "generated"
+    @shift_month.is_confirmed = false
+    assert_equal "仮シフト", @shift_month.status_label
+  end
+
+  test "status_label returns correct label for confirmed" do
+    @shift_month.status = "generated"
+    @shift_month.is_confirmed = true
+    assert_equal "確定済み", @shift_month.status_label
+  end
+
+  test "status_color returns correct class for draft" do
+    @shift_month.status = "draft"
+    @shift_month.is_confirmed = false
+    assert_equal "status-draft", @shift_month.status_color
+  end
+
+  test "status_color returns correct class for generated" do
+    @shift_month.status = "generated"
+    @shift_month.is_confirmed = false
+    assert_equal "status-generated", @shift_month.status_color
+  end
+
+  test "status_color returns correct class for confirmed" do
+    @shift_month.status = "generated"
+    @shift_month.is_confirmed = true
+    assert_equal "status-confirmed", @shift_month.status_color
+  end
 end

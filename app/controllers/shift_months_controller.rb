@@ -93,7 +93,20 @@ class ShiftMonthsController < ApplicationController
     @error_message = flash[:error_message]
     @shortages     = flash[:shortages] || []
     @shift_request = ShiftRequest.new
-    @staffs        = Staff.where(active: true).order(:id)
+
+    # 確定済みシフトは非アクティブスタッフも表示する（割当が存在するスタッフを含む）
+    # 未確定の場合はアクティブなスタッフのみ
+    if @shift_month.is_confirmed
+      # 割当が存在するスタッフID（非アクティブを含む）とアクティブスタッフを合わせて表示
+      staff_ids_with_assignment = ShiftAssignment
+                                    .where(shift_month_id: @shift_month.id)
+                                    .distinct
+                                    .pluck(:staff_id)
+      @staffs = Staff.where("active = ? OR id IN (?)", true, staff_ids_with_assignment.presence || [0])
+                     .order(:id)
+    else
+      @staffs = Staff.where(active: true).order(:id)
+    end
 
     @requests = ShiftRequest
                   .includes(:staff)
@@ -155,17 +168,30 @@ class ShiftMonthsController < ApplicationController
       staff_id: staff_id,
       date: date
     )
-    
+
     if params[:kind].present?
       @assignment.kind = params[:kind]
     else
       @assignment.kind = (@assignment.kind == "D" ? "O" : "D")
     end
-    
+
     @assignment.save!
 
     start_date = Date.new(@shift_month.year, @shift_month.month, 1)
     @dates = (start_date..start_date.end_of_month).to_a
+
+    # 集計行更新用に全割当を再取得
+    assignments = ShiftAssignment.where(shift_month_id: @shift_month.id)
+    @assignment_map = Hash.new { |h, k| h[k] = {} }
+    assignments.each { |a| @assignment_map[a.staff_id][a.date] = a }
+
+    # showアクションと同じスタッフ取得ロジック
+    if @shift_month.is_confirmed
+      staff_ids_with_assignment = assignments.map(&:staff_id).uniq
+      @staffs = Staff.where("active = ? OR id IN (?)", true, staff_ids_with_assignment.presence || [0]).order(:id)
+    else
+      @staffs = Staff.where(active: true).order(:id)
+    end
 
     respond_to do |format|
       format.turbo_stream
@@ -188,55 +214,46 @@ class ShiftMonthsController < ApplicationController
   def export_csv
     shift_month = ShiftMonth.find(params[:id])
 
-    staffs = Staff.where(active: true).order(:id)
+    # 確定済みは非アクティブスタッフも含む
+    staffs = staffs_for_shift_month(shift_month)
     start_date = Date.new(shift_month.year, shift_month.month, 1)
     dates = (start_date..start_date.end_of_month).to_a
 
     assignments = ShiftAssignment.where(shift_month_id: shift_month.id)
     assignment_map = Hash.new { |h, k| h[k] = {} }
-    
-    # 集計行用カウンター
-    daily_counts = Hash.new { |h, k| h[k] = Hash.new(0) }
 
     assignments.each do |a|
       assignment_map[a.staff_id][a.date] = a.kind
-      daily_counts[a.date][a.kind] += 1
     end
 
     csv = CSV.generate(force_quotes: true) do |out|
-      # ヘッダ：名前 + 日付のみ + 休日合計 + 年休・厚休
       header = ["名前"] + dates.map { |d| d.day.to_s } + ["休日合計", "年休・厚休"]
       out << header
 
       staffs.each do |staff|
         row = [staff.name]
-        holiday_count = 0
-        special_leave_count = 0
+        kinds = dates.map { |date| assignment_map.dig(staff.id, date) || "D" }
 
-        dates.each do |date|
-          kind = assignment_map.dig(staff.id, date) || "D"
+        kinds.each do |kind|
           row << ShiftAssignment::HUMAN_KINDS[kind]
-
-          if kind != "D"
-            holiday_count += 1
-          end
-          if kind == "nen" || kind == "kousei"
-            special_leave_count += 1
-          end
         end
 
-        row << holiday_count
-        row << special_leave_count
+        row << ShiftAssignment.calculate_holiday_count(kinds)
+        row << ShiftAssignment.calculate_special_leave_count(kinds)
         out << row
       end
 
-      # 集計行：出勤人数
-      work_counts = ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] } + ["", ""]
-      out << work_counts
+      # 集計行：出勤人数（D + 分数休暇は出勤扱い）
+      work_row = ["出勤人数"] + dates.map { |date|
+        assignment_map.values.count { |by_date| ShiftAssignment.work_kind?(by_date[date] || "D") }
+      } + ["", ""]
+      out << work_row
 
-      # 集計行：休み人数
-      off_counts = ["休み人数"] + dates.map { |d| daily_counts[d]["O"] } + ["", ""]
-      out << off_counts
+      # 集計行：休み人数（O, nen, kousei のみ。分数休暇は出勤扱い）
+      off_row = ["休み人数"] + dates.map { |date|
+        assignment_map.values.count { |by_date| ShiftAssignment.off_kind?(by_date[date] || "D") }
+      } + ["", ""]
+      out << off_row
     end
 
     filename = "shift_#{shift_month.year}_#{format('%02d', shift_month.month)}.csv"
@@ -247,18 +264,16 @@ class ShiftMonthsController < ApplicationController
   def export_pdf
     shift_month = ShiftMonth.find(params[:id])
 
-    staffs = Staff.where(active: true).order(:id)
+    # 確定済みは非アクティブスタッフも含む
+    staffs = staffs_for_shift_month(shift_month)
     start_date = Date.new(shift_month.year, shift_month.month, 1)
     dates = (start_date..start_date.end_of_month).to_a
 
     assignments = ShiftAssignment.where(shift_month_id: shift_month.id)
     assignment_map = Hash.new { |h, k| h[k] = {} }
-    
-    daily_counts = Hash.new { |h, k| h[k] = Hash.new(0) }
-    
+
     assignments.each do |a|
       assignment_map[a.staff_id][a.date] = a.kind
-      daily_counts[a.date][a.kind] += 1
     end
 
     pdf = Prawn::Document.new(page_layout: :landscape, margin: 20)
@@ -285,35 +300,33 @@ class ShiftMonthsController < ApplicationController
     pdf.move_down 10
 
     # === テーブル作成 ===
-    # ヘッダー：日付のみ + 休日合計 + 年休・厚休
     header = ["名前"] + dates.map { |d| d.day.to_s } + ["休日合計", "年休・厚休"]
-
     table_data = [header]
+
     staffs.each do |staff|
       row = [staff.name]
-      holiday_count = 0
-      special_leave_count = 0
+      kinds = dates.map { |date| assignment_map.dig(staff.id, date) || "D" }
 
-      dates.each do |date|
-        kind = assignment_map.dig(staff.id, date) || "D"
+      kinds.each do |kind|
         row << ShiftAssignment::HUMAN_KINDS[kind]
-        
-        if kind != "D"
-          holiday_count += 1
-        end
-        if kind == "nen" || kind == "kousei"
-          special_leave_count += 1
-        end
       end
-      
-      row << holiday_count
-      row << special_leave_count
+
+      row << ShiftAssignment.calculate_holiday_count(kinds)
+      row << ShiftAssignment.calculate_special_leave_count(kinds)
       table_data << row
     end
 
-    # 集計行を追加
-    table_data << ["出勤人数"] + dates.map { |d| daily_counts[d]["D"] } + ["", ""]
-    table_data << ["休み人数"] + dates.map { |d| daily_counts[d]["O"] } + ["", ""]
+    # 集計行：出勤人数（D + 分数休暇は出勤扱い）
+    work_row = ["出勤人数"] + dates.map { |date|
+      assignment_map.values.count { |by_date| ShiftAssignment.work_kind?(by_date[date] || "D") }
+    } + ["", ""]
+    table_data << work_row
+
+    # 集計行：休み人数（O, nen, kousei のみ）
+    off_row = ["休み人数"] + dates.map { |date|
+      assignment_map.values.count { |by_date| ShiftAssignment.off_kind?(by_date[date] || "D") }
+    } + ["", ""]
+    table_data << off_row
 
     pdf.table(
       table_data,
@@ -325,29 +338,23 @@ class ShiftMonthsController < ApplicationController
         padding: [3, 3, 3, 3]
       }
     ) do
-      # ヘッダー行スタイル
       row(0).font_style = :bold
       row(0).background_color = "EEEEEE"
-      
-      # 左端列（名前列）スタイル
+
       columns(0).align = :left
       columns(0).width = 90
-      
-      # 集計行スタイル（下2行）
+
       row(-2..-1).background_color = "F8F9FA"
       row(-2..-1).font_style = :bold
 
-      # 土日祝のカラーリング
       dates.each_with_index do |date, i|
-        # テーブル上の列インデックス（名前列が0番目なので +1）
         col_index = i + 1
-
         if date.sunday?
-          columns(col_index).background_color = "FFECEC" # .col-sun
+          columns(col_index).background_color = "FFECEC"
         elsif date.saturday?
-          columns(col_index).background_color = "EEF4FF" # .col-sat
+          columns(col_index).background_color = "EEF4FF"
         elsif HolidayJapan.check(date)
-          columns(col_index).background_color = "FFF2CC" # .col-holiday
+          columns(col_index).background_color = "FFF2CC"
         end
       end
     end
@@ -361,6 +368,19 @@ class ShiftMonthsController < ApplicationController
 
   private
 
+  # 確定済みシフトは非アクティブスタッフも含む、未確定はアクティブのみ
+  def staffs_for_shift_month(shift_month)
+    if shift_month.is_confirmed
+      staff_ids_with_assignment = ShiftAssignment
+                                    .where(shift_month_id: shift_month.id)
+                                    .distinct
+                                    .pluck(:staff_id)
+      Staff.where("active = ? OR id IN (?)", true, staff_ids_with_assignment.presence || [0]).order(:id)
+    else
+      Staff.where(active: true).order(:id)
+    end
+  end
+
   def shift_month_params
     params.require(:shift_month).permit(
       :year,
@@ -368,7 +388,8 @@ class ShiftMonthsController < ApplicationController
       :required_day_shifts_weekday,
       :required_day_shifts_sun_holiday,
       :max_consecutive_work_days,
-      :required_day_shifts
+      :required_day_shifts,
+      :request_deadline
     )
   end
 end

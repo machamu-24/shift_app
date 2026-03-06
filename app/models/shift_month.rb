@@ -19,6 +19,34 @@ class ShiftMonth < ApplicationRecord
     "#{year}年#{month}月"
   end
 
+  # 希望休申請の締め切り日を過ぎているか（未設定の場合は常に申請可）
+  def request_deadline_passed?
+    return false if request_deadline.nil?
+    Date.current > request_deadline
+  end
+
+  # ステータスの表示用ラベル
+  def status_label
+    if is_confirmed
+      "確定済み"
+    elsif status == "generated"
+      "仮シフト"
+    else
+      "未生成"
+    end
+  end
+
+  # ステータスの色クラス
+  def status_color
+    if is_confirmed
+      "status-confirmed"
+    elsif status == "generated"
+      "status-generated"
+    else
+      "status-draft"
+    end
+  end
+
   def holiday_for_minimum_rest?(date)
     date.saturday? || date.sunday? || HolidayJapan.check(date)
   end

@@ -5,7 +5,7 @@
     <div>
       <h1 style="margin-bottom: 0.5rem;"><%= @shift_month.year %>年 <%= @shift_month.month %>月</h1>
       <div style="color: var(--text-muted); display: flex; align-items: center; gap: 1rem;">
-        <span>ステータス: <span style="font-weight: 600;"><%= @shift_month.status %></span></span>
+        <span>ステータス: <span style="font-weight: 600;"><%= @shift_month.status_label %></span></span>
         <% if @shift_month.is_confirmed %>
            <span style="color: var(--danger-color); font-weight: 700;">🔒 確定済み（編集ロック）</span>
         <% else %>
@@ -171,11 +171,11 @@
                   } %>
           <% end %>
 
-          <tr class="summary-row summary-work-row">
+          <tr id="summary-work-row-<%= @shift_month.id %>" class="summary-row summary-work-row">
             <td class="summary-label">出勤</td>
             <% @dates.each do |date| %>
               <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind || "D" } %>
-              <% working_count = assignments_for_date.count { |k| k == "D" } %>
+              <% working_count = assignments_for_date.count { |k| ShiftAssignment.work_kind?(k) } %>
               <td class="summary-work">
                 <%= working_count %>
               </td>
@@ -183,11 +183,11 @@
             <td colspan="2" style="background-color: #f8f9fa;"></td>
           </tr>
 
-          <tr class="summary-row summary-off-row">
+          <tr id="summary-off-row-<%= @shift_month.id %>" class="summary-row summary-off-row">
             <td class="summary-label">休み</td>
             <% @dates.each do |date| %>
               <% assignments_for_date = @staffs.map { |s| @assignment_map.dig(s.id, date)&.kind || "D" } %>
-              <% off_count = assignments_for_date.count { |k| k != "D" } %>
+              <% off_count = assignments_for_date.count { |k| ShiftAssignment.off_kind?(k) } %>
               <td class="summary-off">
                 <%= off_count %>
               </td>

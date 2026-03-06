@@ -28,6 +28,12 @@
     <%= f.number_field :max_consecutive_work_days, value: (shift_month.max_consecutive_work_days.presence || 5), min: 1 %>
   </div>
 
+  <div class="form-group">
+    <%= f.label :request_deadline, "希望休申請の締め切り日（空白の場合は制限なし）" %>
+    <%= f.date_field :request_deadline, value: shift_month.request_deadline %>
+    <small style="color: var(--text-muted); font-size: 0.8rem;">締め切り日の翻日以降、一般スタッフは希望休を申請できなくなります。</small>
+  </div>
+
   <% if shift_month.persisted? %>
     <div class="alert alert-notice" style="background-color: #fff7ed; color: #9a3412; border-color: #ffedd5;">
       設定を変更すると、保存時にシフトを自動で再生成します（既存の割当は作り直されます）。
